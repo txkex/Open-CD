@@ -1,0 +1,2275 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Open CD</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{--glass:rgba(26,21,18,.86);--line:rgba(255,255,255,.09);--text:#f3eee8;--dim:rgba(243,238,232,.58);--acc:#f2b36b;--acc2:#ff7a59;--acc-rgb:242,179,107;--on-acc:#1d1209}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;color:var(--text);-webkit-font-smoothing:antialiased;
+  background:radial-gradient(1200px 760px at 50% 28%,#2c231c 0,#17120f 55%,#0b0908 100%);
+  font:14px/1.4 Inter,"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.5))}
+canvas{display:block}
+button{font:inherit;color:inherit;background:rgba(255,255,255,.06);border:1px solid var(--line);padding:8px 14px;border-radius:999px;cursor:pointer;transition:background .18s,transform .12s,filter .18s;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+button:hover{background:rgba(255,255,255,.13)}button:active{transform:scale(.96)}
+button svg{flex:none}
+.primary{background:linear-gradient(135deg,var(--acc),var(--acc2));color:var(--on-acc);font-weight:600;border:0}
+.primary:hover{background:linear-gradient(135deg,var(--acc),var(--acc2));filter:brightness(1.1)}
+.glass{background:var(--glass);border:1px solid var(--line);box-shadow:0 14px 44px rgba(0,0,0,.45)}
+
+#bar{position:fixed;z-index:2;top:14px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:8px 10px 8px 16px;border-radius:20px;max-width:calc(100vw - 24px);flex-wrap:wrap;justify-content:center}
+#brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:-.01em;white-space:nowrap}
+#brand i,.orb{border-radius:50%;position:relative;background:conic-gradient(#e8e8f0,#b9c7ff,#f1f1f1,#ffd6e8,#e8e8f0,#c8ffe0,#e8e8f0)}
+#brand i{width:22px;height:22px}
+#brand i::after,.orb::after{content:"";position:absolute;inset:32%;border-radius:50%;background:#1a1512}
+#search{display:flex;align-items:center;gap:8px;height:36px;width:min(230px,26vw);min-width:130px;padding:0 14px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--dim);transition:border-color .2s}
+#search:focus-within{border-color:rgba(var(--acc-rgb),.65);color:var(--text)}
+#q{all:unset;flex:1;min-width:0;color:var(--text)}#q::placeholder{color:var(--dim)}
+.seg{display:flex;padding:3px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.seg button{border:0;background:none;padding:5px 13px;color:var(--dim)}
+.seg button.on{background:rgba(var(--acc-rgb),.24);color:var(--text)}
+button:not(.primary):hover{background:rgba(var(--acc-rgb),.16)}
+.sw{display:flex;align-items:center;gap:8px;color:var(--dim);cursor:pointer;user-select:none;font-size:13px;white-space:nowrap}
+.sw input{display:none}
+.sw i{width:34px;height:20px;border-radius:999px;background:rgba(255,255,255,.15);position:relative;transition:background .2s}
+.sw i::after{content:"";position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s}
+.sw input:checked+i{background:var(--acc)}.sw input:checked+i::after{transform:translateX(14px)}
+@media (max-width:1050px){#brand span{display:none}}
+#setback{position:fixed;inset:0;z-index:3;display:none;background:rgba(8,6,5,.5)}
+#setback.show{display:block}
+#settings{position:fixed;z-index:4;inset:0;margin:auto;width:min(780px,calc(100vw - 32px));height:min(590px,calc(100vh - 48px));border-radius:22px;display:none;overflow:hidden;padding:0}
+#settings.show{display:grid;grid-template-columns:200px 1fr}
+#stabs{display:flex;flex-direction:column;gap:2px;padding:18px 12px;border-right:1px solid var(--line);background:rgba(0,0,0,.16)}
+#stabs h2{margin:2px 10px 14px;font-size:17px;font-weight:650;letter-spacing:-.01em}
+#stabs button{justify-content:flex-start;border:0;background:none;border-radius:10px;padding:9px 10px;color:var(--dim);font-weight:500}
+#stabs button svg{opacity:.8}
+#stabs button:hover{background:rgba(var(--acc-rgb),.1);color:var(--text)}
+#stabs button.on{background:rgba(var(--acc-rgb),.16);color:var(--text)}#stabs button.on svg{color:var(--acc);opacity:1}
+#sbody{position:relative;min-width:0;min-height:0;overflow:auto;padding:22px 26px 28px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}
+#sclose{position:absolute;top:12px;right:12px;width:30px;height:30px;padding:0;z-index:1}
+#sbody section{display:none;flex-direction:column;gap:22px}#sbody section.on{display:flex}
+#sbody h2.pt{margin:0 0 -6px;font-size:21px;font-weight:650;letter-spacing:-.02em}
+.grp{display:flex;flex-direction:column;gap:8px}
+.grp>h3{margin:0 4px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:650}
+.card{border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);overflow:hidden}
+.card>*+*{border-top:1px solid var(--line)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:12px 14px}
+.row.col{flex-direction:column;align-items:stretch;gap:10px}
+.rt b{display:block;font-weight:550}
+.rt small,.card>.opt small{display:block;color:var(--dim);font-size:12px;line-height:1.35;margin-top:2px;max-width:46ch}
+.row .seg{flex:none;width:auto}.row .seg button{padding:5px 12px;font-size:13px}
+.card>.opt{padding:12px 14px}
+.danger{color:#ffb0a0}
+.cg{grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+#eqbox{display:flex;flex-direction:column;gap:14px;transition:opacity .25s}
+#eqbox.off{opacity:.38;pointer-events:none}
+.eqtop{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#eqpre{-webkit-appearance:none;appearance:none;font:inherit;color:var(--text);cursor:pointer;border:1px solid var(--line);border-radius:999px;padding:7px 32px 7px 14px;
+  background:rgba(255,255,255,.07) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none' stroke='%23aaa' stroke-width='1.6' stroke-linecap='round'%3E%3Cpath d='M1 1l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 12px center}
+#eqpre option{background:#1c1713;color:var(--text)}
+.eqpa{margin-left:auto;display:flex;align-items:center;gap:10px;color:var(--dim);font-size:12px}
+#eqpreamp,#lyroff{-webkit-appearance:none;appearance:none;width:130px;height:4px;border-radius:2px;outline:none;cursor:pointer;background:linear-gradient(to right,var(--acc) var(--v,50%),rgba(255,255,255,.16) var(--v,50%))}
+#eqpreamp::-webkit-slider-thumb,#lyroff::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.6)}
+#eqpv{width:46px;text-align:right;font-variant-numeric:tabular-nums;color:var(--text)}
+#eqcurve{display:block;width:100%;height:84px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid var(--line)}
+#eqcurve .zero{stroke:rgba(255,255,255,.16);stroke-dasharray:3 4;vector-effect:non-scaling-stroke}
+#eqcurve .ln{fill:none;stroke:var(--acc);stroke-width:1.8;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+#eqcurve .fl{fill:rgba(var(--acc-rgb),.13);stroke:none}
+#eqbands{display:grid;grid-template-columns:repeat(10,1fr);gap:4px}
+.band{display:flex;flex-direction:column;align-items:center;gap:6px}
+.band .bv,.band .bf{font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums;height:14px;line-height:14px}
+.band input{writing-mode:vertical-lr;direction:rtl;-webkit-appearance:none;appearance:none;width:24px;height:150px;margin:0;background:transparent;cursor:pointer;outline:none}
+.band input::-webkit-slider-runnable-track{width:4px;border-radius:2px;background:rgba(255,255,255,.16)}
+.band input::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-left:-5px;border-radius:50%;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.6)}
+.band input.nz::-webkit-slider-thumb{background:var(--acc)}
+.eqnote{font-size:12px;color:var(--dim);margin:0 2px}
+@media (max-width:640px){#settings.show{grid-template-columns:1fr;grid-template-rows:auto 1fr}#stabs{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:10px 48px 10px 10px}#stabs h2{display:none}#stabs button{flex:none}#sbody{padding:18px 16px 24px}.row{flex-wrap:wrap}.eqpa{margin-left:0}}
+.opt{justify-content:space-between;gap:14px;white-space:normal;color:var(--text)}
+.opt b{display:block;font-weight:550}.opt small{display:block;color:var(--dim);font-size:12px;line-height:1.3;margin-top:2px}
+.opt i{flex:none}
+#setbtn[aria-expanded=true]{background:rgba(var(--acc-rgb),.24)}
+
+#prog{position:fixed;z-index:3;top:0;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .25s}
+#st{position:fixed;z-index:2;top:calc(var(--barh,56px) + 28px);left:50%;transform:translateX(-50%);padding:5px 14px;border-radius:999px;font-size:12px;color:var(--dim);max-width:60vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#st:empty{display:none}
+#err{position:fixed;z-index:4;top:calc(var(--barh,56px) + 34px);left:50%;transform:translateX(-50%);color:#ffb0a0}
+
+#empty{position:fixed;z-index:2;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;transition:opacity .5s;pointer-events:none}
+#empty>*{pointer-events:auto}
+#empty.hide{opacity:0}#empty.hide>*{pointer-events:none}
+#empty h1{margin:6px 0 0;font-size:46px;font-weight:700;letter-spacing:-.035em}
+#empty p{margin:0;color:var(--dim);max-width:390px;font-size:15px}
+#empty .primary{padding:12px 24px;font-size:15px;margin-top:6px}
+.orb{width:88px;height:88px;box-shadow:0 0 0 24px rgba(255,255,255,.035),0 22px 60px rgba(0,0,0,.6);animation:spin 16s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#panel{position:fixed;z-index:2;right:14px;top:calc(var(--barh,56px) + 18px);bottom:14px;width:min(330px,calc(100vw - 28px));display:flex;flex-direction:column;gap:14px;padding:18px;border-radius:22px;opacity:0;transform:translateX(34px);pointer-events:none;transition:opacity .4s,transform .5s cubic-bezier(.2,.8,.2,1)}
+#panel.show{opacity:1;transform:none;pointer-events:auto}
+#head{display:flex;gap:16px;align-items:flex-start}
+#head>div:last-child{flex:1;min-width:0}
+#pcover{width:88px;height:88px;flex:none;border-radius:12px;background:linear-gradient(135deg,#2d3a55,#6b3a5a) center/cover;box-shadow:0 8px 22px rgba(0,0,0,.6)}
+#title{font-size:17px;font-weight:650;line-height:1.25;letter-spacing:-.01em;max-height:3.75em;overflow:hidden;overflow-wrap:anywhere}
+#title::before{content:"";float:right;width:100px;height:28px}   /* the first line of the title flows around the minimize / close buttons */
+#artist{color:var(--dim);margin-top:3px}
+#meta{color:var(--dim);font-size:12px;line-height:1.5;margin-top:6px;opacity:.75}#meta span{white-space:nowrap}
+#np{margin-top:3px;font-size:13px;color:var(--text);min-width:0;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+#np:empty{display:none}
+#close{position:absolute;top:12px;right:12px;width:30px;height:30px;padding:0}
+#minbtn{position:absolute;top:12px;right:48px;width:30px;height:30px;padding:0}
+#mini{position:fixed;z-index:3;right:14px;top:calc(var(--barh,56px) + 18px);width:min(390px,calc(100vw - 28px));display:flex;align-items:center;gap:16px;padding:14px;border-radius:22px;overflow:hidden;opacity:0;visibility:hidden;transition:opacity .35s,visibility 0s .35s}
+#mini.show{opacity:1;visibility:visible;transition:opacity .35s}
+#minic{position:relative;flex:none;width:108px;height:108px;border-radius:50%;cursor:pointer;opacity:0;transition:opacity .15s}
+#mini.landed #minic{opacity:1}
+#minic i{position:absolute;inset:0;border-radius:50%;background:#26211c linear-gradient(135deg,#2d3a55,#6b3a5a) center/cover;box-shadow:0 8px 24px rgba(0,0,0,.6);animation:mspin 3.2s linear infinite;animation-play-state:paused}
+body.playing #minic i{animation-play-state:running}
+#minic::before{content:"";position:absolute;inset:0;border-radius:50%;z-index:1;pointer-events:none;background:conic-gradient(from 20deg,rgba(255,255,255,.26),transparent 18%,rgba(255,255,255,.14) 40%,transparent 58%,rgba(255,255,255,.26) 78%,transparent)}
+#minic::after{content:"";position:absolute;inset:43.75%;border-radius:50%;z-index:2;pointer-events:none;background:#1a1512;box-shadow:0 0 0 7px rgba(255,255,255,.13),0 0 0 8px rgba(255,255,255,.22)}
+@keyframes mspin{to{transform:rotate(360deg)}}
+#mini .mr{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+#mini .mt{min-width:0;line-height:1.3;cursor:pointer;padding-right:56px}
+#mini .mt b{display:block;font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mini .mt span{display:block;font-size:12px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mini .mc{display:flex;align-items:center;gap:8px}
+#mini button{flex:none;width:30px;height:30px;padding:0}
+#mini #mplay{width:38px;height:38px}
+#mini #mexp,#mini #mx{position:absolute;top:10px;width:26px;height:26px}
+#mini #mx{right:10px}#mini #mexp{right:40px}
+@media (min-width:1480px){#panel,#mini{top:14px}}
+#mprog{position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--acc)}
+#tl{flex:1;overflow:auto;margin:0 -8px;padding:0 8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent}
+.tr{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:12px;cursor:pointer}
+.tr:hover{background:rgba(255,255,255,.07)}
+.tr.on{background:rgba(var(--acc-rgb),.14);color:var(--acc)}
+.no{width:22px;text-align:right;color:var(--dim);font-size:12px;font-variant-numeric:tabular-nums}.tr.on .no{color:var(--acc)}
+.nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eq{display:none;gap:2px;align-items:flex-end;height:12px}.tr.on .eq{display:flex}
+.eq b{width:3px;height:30%;border-radius:2px;background:var(--acc)}
+body.playing .tr.on .eq b{animation:eq .9s ease-in-out infinite}
+body.playing .tr.on .eq b:nth-child(2){animation-delay:.2s}body.playing .tr.on .eq b:nth-child(3){animation-delay:.4s}
+@keyframes eq{0%,100%{height:25%}50%{height:100%}}
+#player{display:flex;flex-direction:column;gap:8px}
+#seek{-webkit-appearance:none;appearance:none;width:100%;height:4px;margin:6px 0;border-radius:2px;outline:none;cursor:pointer;background:linear-gradient(to right,var(--acc) var(--p,0%),rgba(255,255,255,.16) var(--p,0%))}
+#seek::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.6)}
+#times{display:flex;justify-content:space-between;color:var(--dim);font-size:11px;font-variant-numeric:tabular-nums}
+#ctl{display:flex;justify-content:center;align-items:center;gap:10px}
+#ctl button.mode{width:34px;height:34px;border:0;background:none;color:var(--dim);position:relative}
+#ctl button.mode:hover{color:var(--text);background:rgba(255,255,255,.08)}
+#ctl button.mode.on{color:var(--acc)}
+#ctl button.mode.on::after{content:"";position:absolute;bottom:3px;left:50%;width:4px;height:4px;margin-left:-2px;border-radius:50%;background:var(--acc)}
+#dur{cursor:pointer}#dur:hover{color:var(--text)}
+#sleep{flex:none;height:28px;padding:0 9px;border:0;background:none;color:var(--dim);font-size:11px;gap:5px;font-variant-numeric:tabular-nums}
+#sleep:hover{color:var(--text);background:rgba(255,255,255,.08)}#sleep.on{color:var(--acc)}
+.keys{display:flex;gap:5px;flex:none;align-items:center;color:var(--dim);font-size:12px}
+kbd{font:600 11px/1 inherit;font-family:inherit;min-width:24px;text-align:center;padding:5px 7px;border-radius:7px;color:var(--text);background:rgba(255,255,255,.08);border:1px solid var(--line);border-bottom-width:2px}
+#ctl button{width:42px;height:42px;padding:0}#ctl #play{width:56px;height:56px}
+
+#tip{position:fixed;z-index:3;left:0;top:0;pointer-events:none;display:flex;align-items:center;gap:12px;padding:8px 14px 8px 8px;border-radius:14px;max-width:310px;opacity:0;transition:opacity .15s}
+#tip.show{opacity:1}
+#tip .tc{width:56px;height:56px;flex:none;border-radius:9px;background:linear-gradient(135deg,#2d3a55,#6b3a5a) center/cover;box-shadow:0 4px 14px rgba(0,0,0,.55)}
+#tip .tt{min-width:0}#tip b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tip .ta{display:block;color:var(--dim);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#tip .tm{display:block;color:var(--dim);font-size:11px;opacity:.7;margin-top:1px}
+#hint{max-width:calc(100vw - 24px);overflow:hidden;text-overflow:ellipsis;position:fixed;z-index:2;left:50%;bottom:16px;transform:translateX(-50%);padding:7px 16px;border-radius:999px;font-size:12px;color:var(--dim);opacity:0;transition:opacity .6s;pointer-events:none;white-space:nowrap}
+body.has-lib #hint{opacity:1}#hint.hide{opacity:0!important}
+#bgfx{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;display:none}
+.seg button{flex:1;padding:5px 6px;font-size:12px;white-space:nowrap}
+.btns{display:flex;gap:8px}.btns button{flex:1;padding:7px 8px;font-size:13px}
+#roots{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--dim)}
+.root{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 10px;border-radius:10px;background:rgba(255,255,255,.04)}
+.root span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;direction:rtl;text-align:left}
+.root button{width:24px;height:24px;padding:0;flex:none;border:0;background:none}
+.chips{display:grid;gap:6px}.c3{grid-template-columns:repeat(3,1fr)}.c4{grid-template-columns:repeat(4,1fr)}
+.chip{flex-direction:column;gap:5px;padding:6px 4px 5px;border-radius:12px;font-size:11px;color:var(--dim);background:rgba(255,255,255,.035);white-space:nowrap}
+.chip i{width:100%;height:20px;border-radius:7px;border:1px solid rgba(255,255,255,.14)}
+.chip.on{color:var(--text);border-color:var(--acc);background:rgba(var(--acc-rgb),.12)}
+#idx{position:fixed;z-index:2;left:8px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;padding:6px 3px;border-radius:14px;max-height:calc(100vh - 220px);overflow:hidden;transition:opacity .4s}
+#idx button{border:0;background:none;padding:0;min-width:20px;height:auto;line-height:1;font-size:11px;font-weight:600;color:var(--dim);border-radius:6px;flex:1 1 0;min-height:11px;max-height:20px}
+#idx button:hover{color:var(--text);background:rgba(255,255,255,.1)}#idx button.on{color:var(--acc)}
+body:not(.has-lib) #idx,body.opened #idx{opacity:0;pointer-events:none}
+#st.scan::before{content:"";display:inline-block;width:8px;height:8px;margin-right:8px;border-radius:50%;background:var(--acc);animation:pulse 1.1s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.orb{animation:none}}
+body.noidx #idx{display:none!important}
+#panewrap{position:relative;flex:none}#paneseg{width:100%}
+#lsrcbtn{display:none;position:absolute;top:50%;right:9px;transform:translateY(-50%);width:24px;height:24px;padding:0;border:0;background:none;color:var(--dim)}
+#lsrcbtn:hover{color:var(--text);background:rgba(255,255,255,.1)}
+#panel.lv #lsrcbtn{display:inline-flex}
+#panel.lv #paneseg button.has::after{right:38px}
+#ctx .ck{flex:none;width:14px;color:var(--acc);font-size:13px}
+#ctx .lb{display:flex;flex-direction:column;align-items:flex-start;line-height:1.25}#ctx .lb small{font-size:11px;color:var(--dim)}#paneseg button{padding:6px 8px;font-size:13px;position:relative}
+#paneseg button.has::after{content:"";position:absolute;top:7px;right:12px;width:6px;height:6px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px var(--acc)}
+#panel.lv #tl{display:none}#panel:not(.lv) #lyrwrap{display:none}
+#lyrwrap{flex:1;min-height:0;position:relative}
+#viz{display:block;flex:none;width:100%;height:38px;margin-top:-4px;border-radius:12px;background:rgba(255,255,255,.04)}body.noviz #viz{display:none}
+.mo{width:26px;height:26px;padding:0;flex:none;border:0;background:none;color:var(--dim);opacity:0;transition:opacity .15s}
+.tr:hover .mo,.mo:focus-visible,.tr.mx .mo{opacity:1}.mo:hover{color:var(--text)}
+#ctx{position:fixed;z-index:6;min-width:208px;max-width:280px;padding:6px;border-radius:14px;display:none;flex-direction:column;gap:1px}
+#ctx.show{display:flex}
+#ctx .hd{padding:6px 10px 5px;font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ctx button{justify-content:flex-start;gap:10px;width:100%;padding:8px 10px;border:0;background:none;border-radius:9px;font-size:13px;text-align:left}
+#ctx button:hover,#ctx button:focus-visible{background:rgba(var(--acc-rgb),.18);outline:none}
+#ctx button svg{color:var(--dim)}#ctx button:hover svg,#ctx button:focus-visible svg{color:var(--acc)}
+#ctx hr{border:0;border-top:1px solid var(--line);margin:4px 2px;width:auto}
+#lyrsync{position:absolute;z-index:1;left:50%;bottom:6px;transform:translateX(-50%);display:none;align-items:center;gap:2px;padding:3px;border-radius:999px;background:rgba(20,15,12,.72);border:1px solid var(--line);backdrop-filter:blur(10px);opacity:0;transition:opacity .2s}
+#panel.sy #lyrsync{display:flex}#lyrwrap:hover #lyrsync,#lyrsync.on{opacity:1}
+#lyrsync button{width:26px;height:26px;padding:0;border:0;background:none;font-size:15px;line-height:1}#lyrsync button:hover{background:rgba(255,255,255,.12)}
+#lyrsync #lsv{min-width:92px;width:auto;padding:0 6px;font-size:11px;color:var(--dim);font-variant-numeric:tabular-nums}#lyrsync.on #lsv{color:var(--acc)}
+#lyr{position:absolute;inset:0 -18px;container-type:size;overflow:hidden;opacity:0;transition:opacity .6s;--glow:var(--acc);
+  -webkit-mask-image:linear-gradient(transparent,#000 8%,#000 88%,transparent);mask-image:linear-gradient(transparent,#000 8%,#000 88%,transparent)}
+#lyr.show{opacity:1}#lyr.plain{overflow:auto;scrollbar-width:none}
+#lyrin{padding:9cqh 22px 12cqh;transition:transform .7s cubic-bezier(.2,.8,.2,1)}#lyr.plain #lyrin{padding:16px 22px;transition:none}
+#lyrnone{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;color:var(--dim);padding:0 24px}
+#lyrnone small{font-size:12px;opacity:.75}#lyrwrap.none #lyrnone{display:flex}
+.ll{font-size:21px;font-weight:700;line-height:1.28;letter-spacing:-.015em;padding:7px 0;color:#fff;opacity:.22;transform-origin:left center;
+  transition:opacity .45s,transform .45s;cursor:pointer;overflow-wrap:anywhere}
+.ll.n1{opacity:.42}.ll.n2{opacity:.3}
+.ll.cur{opacity:1;transform:scale(1.04);transition:opacity .45s,transform .45s}
+.ll.cur .w{color:rgba(255,255,255,.45);filter:drop-shadow(0 0 5px transparent) drop-shadow(0 0 13px transparent);transition:filter .6s ease}
+.ll.cur .w.s{color:#fff;filter:drop-shadow(0 0 5px var(--glow)) drop-shadow(0 0 13px var(--glow))}
+.ll.cur .w.cw{background:linear-gradient(90deg,#fff var(--p,0%),rgba(255,255,255,.45) var(--p,0%));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 5px var(--glow)) drop-shadow(0 0 13px var(--glow))}
+#lyr.plain .ll{opacity:.8;filter:none;cursor:default;font-size:16px;font-weight:600}
+.ll.gap{font-size:15px;opacity:.15}
+#volrow{display:flex;align-items:center;gap:6px;margin-top:-2px}
+#mute{width:32px;height:32px;padding:0;flex:none;border:0;background:none;color:var(--dim)}#mute:hover{color:var(--text);background:none}
+#vol{-webkit-appearance:none;appearance:none;flex:1;height:4px;border-radius:2px;outline:none;cursor:pointer;background:linear-gradient(to right,var(--acc) var(--v,100%),rgba(255,255,255,.16) var(--v,100%))}
+#vol::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.6)}
+
+#fsbtn{position:absolute;top:12px;right:84px;width:30px;height:30px;padding:0}
+#fs{position:fixed;z-index:20;inset:0;display:flex;align-items:center;justify-content:center;gap:clamp(24px,5vw,90px);padding:4vh 5vw;opacity:0;visibility:hidden;transition:opacity .45s,visibility 0s .45s;
+  background:radial-gradient(130% 120% at 22% 45%,var(--fs1,#3a2a1c) 0%,var(--fs2,#0d0a08) 100%);--glow:var(--fsg,var(--acc))}
+#fs.show{opacity:1;visibility:visible;transition:opacity .45s}
+#fsc{position:relative;flex:none;width:min(52vh,40vw);aspect-ratio:1;border-radius:50%;cursor:pointer}
+#fsc i{position:absolute;inset:0;border-radius:50%;background:#26211c center/cover;box-shadow:0 30px 90px rgba(0,0,0,.65),0 0 140px -20px var(--fsg,transparent);animation:mspin 6s linear infinite;animation-play-state:paused}
+body.playing #fsc i{animation-play-state:running}
+#fsc::before{content:"";position:absolute;inset:0;border-radius:50%;z-index:1;pointer-events:none;background:conic-gradient(from 20deg,rgba(255,255,255,.26),transparent 18%,rgba(255,255,255,.14) 40%,transparent 58%,rgba(255,255,255,.26) 78%,transparent)}
+#fsc::after{content:"";position:absolute;inset:43.75%;border-radius:50%;z-index:2;pointer-events:none;background:var(--fs2,#1a1512);box-shadow:0 0 0 .6vh rgba(255,255,255,.13),0 0 0 calc(.6vh + 1px) rgba(255,255,255,.22)}
+#fslyr{position:relative;flex:1;min-width:0;max-width:760px;height:min(78vh,820px)}
+#fslyr #lyrwrap{position:absolute;inset:0;display:block}
+#fs #lyr{inset:0}
+#fs .ll{font-size:clamp(24px,3vw,46px);padding:.35em 0}
+#fs #lyr.plain .ll{font-size:clamp(17px,1.7vw,26px)}
+#fs #lyrsync{display:none!important}
+#fs #lyrnone{font-size:clamp(16px,1.6vw,22px)}
+#fsx{position:absolute;top:18px;right:18px;width:40px;height:40px;padding:0;opacity:.55}#fsx:hover{opacity:1}
+@media (max-width:820px){#fs{flex-direction:column;gap:3vh}#fsc{width:min(30vh,60vw)}#fslyr{width:100%;max-width:none;height:auto;flex:1}}
+@media (max-width:900px){#bar .lb,#brand span{display:none}#bar button{padding:8px 11px}}
+@media (max-width:640px){#bar{gap:8px;padding:6px 8px}#search{min-width:100px}}
+</style>
+<canvas id="bgfx"></canvas>
+<div id="prog"></div>
+<nav id="idx" class="glass" aria-label="Jump to letter" title="Jump to a letter, or a decade when sorted by year"></nav>
+<header id="bar" class="glass">
+  <div id="brand"><i></i><span>Open CD</span></div>
+  
+  <label id="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input id="q" type="search" placeholder="Search albums or songs" autocomplete="off"></label>
+  <button id="gh" aria-label="Open-CD on GitHub" title="Open-CD on GitHub"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5A11.5 11.5 0 0 0 .5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.69 1.25 3.35.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.62 1.59.23 2.76.11 3.05.74.81 1.18 1.83 1.18 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5z"/></svg><span class="lb">GitHub</span></button>
+  <button id="setbtn" aria-label="Settings" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg><span class="lb">Settings</span></button>
+  <button id="pick" class="primary"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="lb">Choose folder</span></button>
+</header>
+<div id="setback"></div>
+<div id="settings" class="glass" role="dialog" aria-modal="true" aria-label="Settings">
+  <nav id="stabs">
+    <h2>Settings</h2>
+    <button data-t="library"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Library</button>
+    <button data-t="shelf"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>Shelf</button>
+    <button data-t="look"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></svg>Appearance</button>
+    <button data-t="audio"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v6M6 14v6M12 4v10M12 18v2M18 4v2M18 10v10"/><circle cx="6" cy="12" r="2"/><circle cx="12" cy="16" r="2"/><circle cx="18" cy="8" r="2"/></svg>Audio</button>
+    <button data-t="online"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>Online</button>
+    <button data-t="keys"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg>Shortcuts</button>
+  </nav>
+  <button id="sclose" aria-label="Close settings"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <div id="sbody">
+    <section data-p="library">
+      <h2 class="pt">Library</h2>
+      <div class="grp"><div class="card">
+        <div class="row col"><div class="rt"><b>Music folders</b><small>Every folder here is searched, including subfolders, for albums to put on the shelf</small><small id="libstat"></small></div><div id="roots"></div>
+          <div class="btns"><button id="addf">Add folder</button><button id="resc" title="Look for new, changed or removed files">Rescan</button><button id="rebuild" title="Re-read every file's tags and covers from scratch">Rebuild</button></div></div>
+        <label class="sw opt"><span><b>Check for changes on start</b><small>Quickly rescan your folders when the app opens. Only new or changed files are read, so even very large libraries start fast</small></span><input data-k="rescan" type="checkbox"><i></i></label>
+      </div></div>
+      <div class="grp"><h3>Reset</h3><div class="card">
+        <div class="row"><div class="rt"><b>Forget library and caches</b><small>Removes your folders, tags, covers and saved lyrics from this app. Your music files are never touched</small></div><button id="forget" class="danger">Forget…</button></div>
+      </div></div>
+    </section>
+    <section data-p="shelf">
+      <h2 class="pt">Shelf</h2>
+      <div class="grp"><h3>Browsing</h3><div class="card">
+        <div class="row"><div class="rt"><b>Sort by</b><small>How albums are ordered along the shelf</small></div><div class="seg" data-k="sort"><button data-v="title">Album</button><button data-v="artist">Artist</button><button data-v="year">Year</button></div></div>
+        <div class="row"><div class="rt"><b>Albums per row</b><small>Auto fits as many cases as the window allows; a fixed number zooms the shelf to fit instead</small></div><div class="seg" data-k="per"><button data-v="auto">Auto</button><button data-v="24">24</button><button data-v="36">36</button><button data-v="54">54</button></div></div>
+        <label class="sw opt"><span><b>A–Z jump bar</b><small>Show the letter strip on the left edge (decades when sorted by year)</small></span><input data-k="idx" type="checkbox"><i></i></label>
+      </div></div>
+      <div class="grp"><h3>Animation</h3><div class="card">
+        <div class="row"><div class="rt"><b>Opening a case</b><small>Speed and style of the animation when you open an album</small></div><div class="seg" data-k="open"><button data-v="classic">Classic</button><button data-v="snappy">Snappy</button><button data-v="cine">Cinematic</button></div></div>
+        <label class="sw opt"><span><b>3D logo</b><small>Show the Open CD logo, with its spinning disc, above the shelf</small></span><input data-k="logo" type="checkbox"><i></i></label>
+        <label class="sw opt"><span><b>Cascade in</b><small>Cases rise onto the shelf when your library loads</small></span><input data-k="intro" type="checkbox"><i></i></label>
+        <label class="sw opt"><span><b>Camera parallax</b><small>The shelf shifts slightly as you move the mouse</small></span><input data-k="para" type="checkbox"><i></i></label>
+      </div></div>
+    </section>
+    <section data-p="look">
+      <h2 class="pt">Appearance</h2>
+      <div class="grp"><h3>Theme</h3><div class="card">
+        <div class="row col"><div class="rt"><b>Accent color</b><small>Colors buttons, switches, sliders and highlights across the app</small></div><div class="chips cg" id="accChips"></div></div>
+        <div class="row col"><div class="rt"><b>Shelf style</b><small>The wood, metal or glass your albums sit on</small></div><div class="chips cg" id="styleChips"></div></div>
+        <div class="row col"><div class="rt"><b>Background</b><small>Animated backgrounds keep moving behind an open CD</small></div><div class="chips cg" id="bgChips"></div></div>
+      </div></div>
+      <div class="grp"><h3>Discs</h3><div class="card">
+        <label class="sw opt"><span><b>Spin disc while playing</b><small>Turn the disc in the open case while music plays</small></span><input data-k="spin" type="checkbox"><i></i></label>
+        <label class="sw opt"><span><b>Scratched CDs</b><small>Add scuffs and hairline scratches to the shiny playing side</small></span><input data-k="scr" type="checkbox"><i></i></label>
+      </div></div>
+    </section>
+    <section data-p="audio">
+      <h2 class="pt">Audio</h2>
+      <div class="grp"><h3>Playback</h3><div class="card">
+        <label class="sw opt"><span><b>Shuffle</b><small>Play an album in random order. Every song plays once before any repeats</small></span><input data-k="shuf" type="checkbox"><i></i></label>
+        <div class="row"><div class="rt"><b>Repeat</b><small>Loop the whole album, or keep replaying the current song</small></div><div class="seg" data-k="rep"><button data-v="off">Off</button><button data-v="all">Album</button><button data-v="one">Song</button></div></div>
+        <div class="row"><div class="rt"><b>Crossfade</b><small>Blend the end of a song into the start of the next one</small></div><div class="seg" data-k="xfade"><button data-v="0">Off</button><button data-v="2">2s</button><button data-v="4">4s</button><button data-v="6">6s</button><button data-v="9">9s</button><button data-v="12">12s</button></div></div>
+        <label class="sw opt"><span><b>Previous restarts the song</b><small>Pressing Previous more than 3 seconds into a song goes back to its start first</small></span><input data-k="prevRestart" type="checkbox"><i></i></label>
+        <label class="sw opt"><span><b>Show time remaining</b><small>Count down instead of showing the song length. You can also click the time in the player</small></span><input data-k="rem" type="checkbox"><i></i></label>
+      </div></div>
+      <div class="grp"><h3>Visualizer</h3><div class="card">
+        <label class="sw opt"><span><b>Mini visualizer</b><small>Live sound bars under the album art while music plays</small></span><input data-k="viz" type="checkbox"><i></i></label>
+        <div class="row"><div class="rt"><b>Style</b><small>Frequency bars, or the sound wave itself</small></div><div class="seg" data-k="vizs"><button data-v="bars">Bars</button><button data-v="wave">Wave</button></div></div>
+      </div></div>
+      <div class="grp"><h3>Lyrics</h3><div class="card">
+        <div class="row"><div class="rt"><b>Lyrics timing</b><small>Drag right if lyrics show up too late, left if too early. For one odd song, use the − / + buttons under the lyrics instead</small></div><div class="eqpa"><input id="lyroff" type="range" min="-1000" max="1000" step="50" aria-label="Lyrics timing"><span id="lov" style="min-width:56px;text-align:right">0 ms</span></div></div>
+      </div></div>
+      <div class="grp"><h3>Equalizer</h3><div class="card">
+        <label class="sw opt"><span><b>Equalizer</b><small>Shape the sound of everything you play. Your settings are kept between launches</small></span><input data-k="eqOn" type="checkbox"><i></i></label>
+      </div></div>
+      <div id="eqbox">
+        <div class="eqtop">
+          <select id="eqpre" aria-label="Preset"></select>
+          <button id="eqreset">Reset</button>
+          <div class="eqpa"><span>Preamp</span><input id="eqpreamp" type="range" min="-12" max="12" step="0.5" aria-label="Preamp"><span id="eqpv">0 dB</span></div>
+        </div>
+        <svg id="eqcurve" viewBox="0 0 300 80" preserveAspectRatio="none" aria-hidden="true"><line class="zero" x1="0" y1="40" x2="300" y2="40"/><path id="eqfl" class="fl"/><path id="eqln" class="ln"/></svg>
+        <div id="eqbands"></div>
+        <p class="eqnote" id="eqnote"></p>
+      </div>
+    </section>
+    <section data-p="online">
+      <h2 class="pt">Online</h2>
+      <div class="grp"><h3>Artwork</h3><div class="card">
+        <label class="sw opt"><span><b>Online artwork</b><small>Look up covers, backs, spines and band photos when your files have none. Results are saved, so each album is only looked up once</small></span><input data-k="net" type="checkbox"><i></i></label>
+        <div class="row"><div class="rt"><b>When to download</b><small>“Instantly” looks up every album in the background. “When I open a CD” waits until you first open an album</small></div><div class="seg" data-k="dl"><button data-v="instant">Instantly</button><button data-v="click">When I open a CD</button></div></div>
+        <label class="sw opt"><span><b>Spine from back art</b><small>If no spine scan exists, use the title strip printed on the edge of the back insert</small></span><input data-k="bsp" type="checkbox"><i></i></label>
+      </div></div>
+      <div class="grp"><h3>Lyrics</h3><div class="card">
+        <label class="sw opt"><span><b>Find lyrics online</b><small>Used only when no .lrc file sits next to a song. Searches LRCLIB (synced) and then lyrics.ovh (plain text), sending the title, artist and album. Results are saved on this computer</small></span><input data-k="olyr" type="checkbox"><i></i></label>
+        <div class="row"><div class="rt"><b>Saved lyrics</b><small>Clear the saved copies to look every song up again</small></div><button id="lyrclear">Clear saved lyrics</button></div>
+      </div></div>
+    </section>
+    <section data-p="keys">
+      <h2 class="pt">Shortcuts</h2>
+      <div class="grp"><h3>While listening</h3><div class="card">
+        <div class="row"><div class="rt"><b>Play / pause</b></div><span class="keys"><kbd>Space</kbd></span></div>
+        <div class="row"><div class="rt"><b>Next / previous song</b></div><span class="keys"><kbd>→</kbd> <span>or</span> <kbd>←</kbd></span></div>
+        <div class="row"><div class="rt"><b>Skip forward / back 10 seconds</b></div><span class="keys"><kbd>L</kbd> <span>or</span> <kbd>J</kbd></span></div>
+        <div class="row"><div class="rt"><b>Volume up / down</b></div><span class="keys"><kbd>↑</kbd> <span>or</span> <kbd>↓</kbd></span></div>
+        <div class="row"><div class="rt"><b>Mute</b></div><span class="keys"><kbd>M</kbd></span></div>
+        <div class="row"><div class="rt"><b>Shuffle</b></div><span class="keys"><kbd>S</kbd></span></div>
+        <div class="row"><div class="rt"><b>Repeat</b></div><span class="keys"><kbd>R</kbd></span></div>
+        <div class="row"><div class="rt"><b>Lyrics later / earlier</b></div><span class="keys"><kbd>[</kbd> <span>or</span> <kbd>]</kbd></span></div>
+        <div class="row"><div class="rt"><b>Close the case</b></div><span class="keys"><kbd>Esc</kbd></span></div>
+      </div></div>
+      <div class="grp"><h3>On the shelf</h3><div class="card">
+        <div class="row"><div class="rt"><b>Scroll the shelf</b></div><span class="keys"><kbd>↑</kbd> <span>or</span> <kbd>↓</kbd></span></div>
+        <div class="row"><div class="rt"><b>Jump two rows</b></div><span class="keys"><kbd>PgUp</kbd> <span>or</span> <kbd>PgDn</kbd></span></div>
+        <div class="row"><div class="rt"><b>Top / bottom of the shelf</b></div><span class="keys"><kbd>Home</kbd> <span>or</span> <kbd>End</kbd></span></div>
+        <div class="row"><div class="rt"><b>Song menu</b><small>Right-click a song, or use its ⋯ button, to play it or open it in Spotify or YouTube Music</small></div></div>
+      </div></div>
+    </section>
+  </div>
+</div>
+<div id="st"></div>
+<input id="files" type="file" webkitdirectory multiple hidden>
+<div id="err"></div>
+<div id="empty"><div class="orb"></div><h1>Open CD</h1><p>Your music collection as a shelf of jewel cases. Pick a folder to build it.</p><button id="pick2" class="primary">Choose music folder</button></div>
+<aside id="panel" class="glass">
+  <button id="minbtn" aria-label="Minimize" title="Keep playing while you browse the shelf"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+  <button id="fsbtn" aria-label="Full screen" title="Full screen: just the CD and lyrics"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+  <button id="close" aria-label="Close case"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+  <div id="head"><div id="pcover"></div><div><div id="title"></div><div id="artist"></div><div id="np"></div><div id="meta"></div></div></div>
+  <canvas id="viz" aria-hidden="true"></canvas>
+  <div id="panewrap"><div class="seg" id="paneseg" data-k="pane"><button data-v="tracks">Tracks</button><button data-v="lyrics">Lyrics</button></div><button id="lsrcbtn" aria-label="Lyrics source" aria-haspopup="menu"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button></div>
+  <div id="tl"></div>
+  <div id="lyrwrap"><div id="lyr"><div id="lyrin"></div></div><div id="lyrsync" role="group" aria-label="Lyrics timing for this song"><button id="lsm" title="Lyrics later ( [ )" aria-label="Lyrics later">−</button><button id="lsv" title="Click to reset this song’s timing">In sync</button><button id="lsp" title="Lyrics earlier ( ] )" aria-label="Lyrics earlier">+</button></div><div id="lyrnone"><span id="lna">No lyrics for this song</span><small id="lnb">Put a .lrc file with the same name next to it</small></div></div>
+  <div id="player">
+    <input id="seek" type="range" min="0" max="1000" value="0">
+    <div id="times"><span id="cur">0:00</span><span id="dur" title="Click to show time remaining">0:00</span></div>
+    <div id="ctl"><button id="shuf" class="mode" aria-label="Shuffle"></button><button id="prev" aria-label="Previous"></button><button id="play" class="primary" aria-label="Play"></button><button id="next" aria-label="Next"></button><button id="rep" class="mode" aria-label="Repeat"></button></div>
+    <div id="volrow"><button id="mute" aria-label="Mute"></button><input id="vol" type="range" min="0" max="100" value="100" aria-label="Volume"><button id="sleep" aria-label="Sleep timer"></button></div>
+  </div>
+  <audio id="au" hidden></audio>
+</aside>
+<div id="mini" class="glass" role="region" aria-label="Now playing"><div id="minic" title="Open the case"><i></i></div><div class="mr"><div class="mt" id="mint" title="Open the case"><b id="mins"></b><span id="mina"></span></div><div class="mc"><button id="mprev" aria-label="Previous"></button><button id="mplay" class="primary" aria-label="Play"></button><button id="mnext" aria-label="Next"></button></div></div><button id="mexp" aria-label="Open case" title="Open the case"></button><button id="mx" aria-label="Stop" title="Stop and close"></button><i id="mprog"></i></div>
+<div id="fs" aria-label="Full screen"><div id="fsc" title="Play / pause"><i></i></div><div id="fslyr"></div><button id="fsx" class="glass" aria-label="Exit full screen" title="Exit full screen (Esc)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button></div>
+<div id="ctx" class="glass" role="menu"></div>
+<div id="tip" class="glass"></div>
+<div id="hint" class="glass">Scroll or A–Z to browse &nbsp;·&nbsp; Click a case to open &nbsp;·&nbsp; Drag to turn it &nbsp;·&nbsp; Esc to close</div>
+<script src="vendor/three.min.js"></script>
+<script>window.THREE||document.write('<script src="node_modules/three/build/three.min.js"><\/script>')</script>
+<script>window.THREE||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>')</script>
+<script>
+const $ = id => document.getElementById(id);
+if (!window.THREE) { $('err').textContent = 'three.js is missing. Run "npm install" once in this folder, then start again.'; throw new Error('three missing'); }
+const api = window.shelf;
+if (!api) { $('err').textContent = 'This page needs the Open CD desktop shell. Start it with run.bat.'; throw new Error('no bridge'); }
+
+// ---- settings: stored in the app's user-data folder, so they survive restarts ----
+const DEF = { per: 'auto', dl: 'instant', pane: 'tracks', vol: 1, muted: false, idx: true, sort: 'title', net: true, bsp: true, scr: false, style: 'walnut', bg: 'warm', open: 'classic', hover: 'pull', lsrc: 'auto', xfade: 0, logo: true, intro: true, para: true, spin: true, rescan: true, viz: true, vizs: 'bars', acc: 'amber', lyroff: 0, lo: {}, shuf: false, rep: 'off', prevRestart: true, rem: false, row: 0, olyr: true, eqOn: false, eqPre: 0, eqG: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], eqP: 'flat' };
+let S = { ...DEF };
+const SET = { get online() { return S.net; }, get backSpine() { return S.bsp; }, get scratch() { return S.scr; } };
+let saveT; const saveSet = () => { clearTimeout(saveT); saveT = setTimeout(() => api.saveSettings(S), 250); };
+
+const CW = 1.42, CH = 1.25, D = 0.1, P = 0.114;
+let ROWH = 1.7;
+let COLS = 36;
+const TZ = 0.03, LZ = 0.046, IN = 1.2, INX = 0.04;   // tray front z, lid z, inlay size, inlay centre x
+const fileUrl = p => { let s = p.replace(/\\/g, '/'); if (s[0] !== '/') s = '/' + s; return 'file://' + encodeURI(s).replace(/[?#]/g, c => encodeURIComponent(c)); };
+const imgUrl = p => 'shelf://f/?p=' + encodeURIComponent(p);
+const COLL = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// scene
+const scene = new THREE.Scene();
+const cam = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.1, 100); cam.position.set(0, 0, 5.2);
+const ren = new THREE.WebGLRenderer({ antialias: true, alpha: true }); ren.setPixelRatio(Math.min(devicePixelRatio, 1.5)); ren.setSize(innerWidth, innerHeight);
+ren.outputEncoding = THREE.sRGBEncoding; ren.toneMapping = THREE.ACESFilmicToneMapping; ren.toneMappingExposure = 1.1;
+ren.shadowMap.enabled = true; ren.shadowMap.type = THREE.PCFSoftShadowMap; ren.shadowMap.autoUpdate = false; ren.shadowMap.needsUpdate = true;   // shadows are only re-drawn while something moves
+ren.domElement.style.cssText = 'position:fixed;inset:0;z-index:1'; document.body.prepend(ren.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x443322, 0.45));
+const sun = new THREE.DirectionalLight(0xfff1dc, 1.1); sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024); sun.shadow.bias = -0.0004;
+Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 3, bottom: -3, near: 0.5, far: 20 });
+scene.add(sun, sun.target);
+let rzT; addEventListener('resize', () => {
+  cam.aspect = innerWidth / innerHeight; fitCam(); ren.setSize(innerWidth, innerHeight); resizeFx(); ren.shadowMap.needsUpdate = true; kick();
+  clearTimeout(rzT); rzT = setTimeout(() => { if (S.per === 'auto' && effPer() !== COLS) { quietBuild = true; reflow(); } }, 120);   // re-seat the shelf so it fills the new window width
+});
+
+
+
+// ---- backgrounds: static gradients plus a few animated ones drawn on a canvas behind the 3D shelf ----
+const dark = (a, b, c) => `radial-gradient(1200px 760px at 50% 28%,${a} 0,${b} 55%,${c} 100%)`;
+const BGS = {
+  warm: { n: 'Ember', css: dark('#2c231c', '#17120f', '#0b0908'), sw: '#3a2d22' },
+  midnight: { n: 'Midnight', css: dark('#1d2c4d', '#0f1729', '#05070d'), sw: '#22335c' },
+  forest: { n: 'Forest', css: dark('#18352a', '#0e1d17', '#060d0a'), sw: '#1f4636' },
+  velvet: { n: 'Velvet', css: dark('#43182a', '#240d17', '#0d0509'), sw: '#5a2039' },
+  slate: { n: 'Slate', css: dark('#30363e', '#1a1e24', '#0b0d10'), sw: '#3b434d' },
+  void: { n: 'Black', css: '#000', sw: '#000' },
+  aurora: { n: 'Aurora', fx: 'aurora', css: '#04070e', sw: 'linear-gradient(135deg,#1b6b5a,#3b3d9c,#7a2d8c)' },
+  stars: { n: 'Starfield', fx: 'stars', css: dark('#101a33', '#080d1c', '#02030a'), sw: 'radial-gradient(circle at 30% 40%,#fff 0 1px,transparent 2px),radial-gradient(circle at 70% 65%,#fff 0 1px,transparent 2px),#0c1430' },
+  discs: { n: 'Drifting CDs', fx: 'discs', css: dark('#262031', '#15111c', '#08060b'), sw: 'conic-gradient(#d6dff5,#f1d0e6,#d6f5e6,#d6dff5)' },
+  glow: { n: 'Album glow', fx: 'glow', css: '#0b0908', sw: 'linear-gradient(135deg,#f2b36b,#ff7a59)' }
+};
+const fxc = $('bgfx'), fxx = fxc.getContext('2d');
+let fxKind = null, fxLast = 0, fxStars = [], fxDiscs = [], fxSprite = null, fxShoot = null;
+let tint = { h: 28, s: 0.3 }, tintTo = { h: 28, s: 0.3 };
+function initFx() {
+  const w = fxc.width, h = fxc.height;
+  fxStars = Array.from({ length: Math.round(w * h / 6500) }, () => ({ x: Math.random() * w, y: Math.random() * h, r: Math.random() * 1.3 + 0.3, p: Math.random() * 6.28, s: 0.4 + Math.random() * 1.6 }));
+  if (!fxSprite) {
+    fxSprite = canvas(160, 160); const x = fxSprite.getContext('2d'), g = x.createConicGradient(0, 80, 80);
+    ['#e8ecf8', '#b9c7ff', '#f4f4f4', '#ffd6e8', '#e8ecf8', '#c8ffe0', '#f4f4f4', '#e8ecf8'].forEach((c, i, a) => g.addColorStop(i / (a.length - 1), c));
+    x.fillStyle = g; x.beginPath(); x.arc(80, 80, 78, 0, 6.283); x.moveTo(94, 80); x.arc(80, 80, 14, 0, 6.283, true); x.fill();
+  }
+  fxDiscs = Array.from({ length: 16 }, () => ({ x: Math.random(), y: Math.random(), s: 0.25 + Math.random() * 1.0, r: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.5, vy: 0.008 + Math.random() * 0.02 }));
+}
+function resizeFx() {
+  const sc = fxKind === 'aurora' || fxKind === 'glow' ? 0.2 : 1;   // soft effects are drawn small and scaled up, which is cheaper and looks smoother
+  fxc.width = Math.max(2, Math.ceil(innerWidth * sc)); fxc.height = Math.max(2, Math.ceil(innerHeight * sc)); initFx();
+}
+function applyBg() {
+  const b = BGS[S.bg] || BGS.warm;
+  document.documentElement.style.background = document.body.style.background = b.css;
+  fxKind = b.fx || null; fxc.style.display = fxKind ? 'block' : 'none'; if (fxKind) resizeFx();
+  document.querySelectorAll('#bgChips .chip').forEach(c => c.classList.toggle('on', c.dataset.v === S.bg));
+}
+function drawFx(now) {
+  if (!fxKind || now - fxLast < 28) return;   // background keeps animating behind an open CD
+  const dt = Math.min(0.1, (now - fxLast) / 1000), t = now / 1000; fxLast = now;
+  const w = fxc.width, h = fxc.height, x = fxx;
+  x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; x.clearRect(0, 0, w, h);
+  if (fxKind === 'aurora') {
+    x.fillStyle = '#04070e'; x.fillRect(0, 0, w, h); x.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 4; i++) {
+      const cx = w * (0.5 + 0.42 * Math.sin(t * 0.07 * (i + 1) + i * 1.9)), cy = h * (0.4 + 0.3 * Math.cos(t * 0.09 * (i + 2) + i)), hu = (150 + i * 48 + 30 * Math.sin(t * 0.05 + i)) % 360;
+      const g = x.createRadialGradient(cx, cy, 0, cx, cy, w * 0.5); g.addColorStop(0, `hsla(${hu},75%,48%,.42)`); g.addColorStop(1, `hsla(${hu},75%,48%,0)`);
+      x.fillStyle = g; x.fillRect(0, 0, w, h);
+    }
+  } else if (fxKind === 'stars') {
+    x.fillStyle = '#fff';
+    for (const s of fxStars) { s.x -= dt * 2.5 * s.r; if (s.x < 0) s.x += w; x.globalAlpha = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(t * s.s + s.p)); x.fillRect(s.x, s.y, s.r, s.r); }
+    x.globalAlpha = 1;
+    if (!fxShoot && Math.random() < dt * 0.12) fxShoot = { x: w * (0.3 + Math.random() * 0.6), y: h * Math.random() * 0.4, life: 0 };
+    if (fxShoot) {
+      const s = fxShoot; s.life += dt; s.x -= dt * 700; s.y += dt * 260;
+      const g = x.createLinearGradient(s.x, s.y, s.x + 120, s.y - 44); g.addColorStop(0, 'rgba(255,255,255,.9)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      x.strokeStyle = g; x.lineWidth = 1.6; x.beginPath(); x.moveTo(s.x, s.y); x.lineTo(s.x + 120, s.y - 44); x.stroke();
+      if (s.life > 0.9) fxShoot = null;
+    }
+  } else if (fxKind === 'discs') {
+    for (const d of fxDiscs) {
+      d.y -= d.vy * dt; d.r += d.vr * dt; if (d.y < -0.2) { d.y = 1.2; d.x = Math.random(); }
+      const sz = d.s * Math.min(w, h) * 0.22; x.globalAlpha = 0.05 + 0.13 * d.s;
+      x.setTransform(1, 0, 0, 1, d.x * w, d.y * h); x.rotate(d.r); x.drawImage(fxSprite, -sz / 2, -sz / 2, sz, sz);
+    }
+    x.setTransform(1, 0, 0, 1, 0, 0); x.globalAlpha = 1;
+  } else if (fxKind === 'glow') {
+    let dh = tintTo.h - tint.h; if (dh > 180) dh -= 360; if (dh < -180) dh += 360;
+    const k = Math.min(1, dt * 2.5); tint.h = (tint.h + dh * k + 360) % 360; tint.s += (tintTo.s - tint.s) * k;
+    const pulse = !au.paused ? 0.06 * Math.sin(t * 2.4) : 0;
+    x.fillStyle = '#0a0807'; x.fillRect(0, 0, w, h);
+    const g = x.createRadialGradient(w * 0.5, h * 0.42, 0, w * 0.5, h * 0.42, w * 0.75);
+    g.addColorStop(0, `hsla(${tint.h},${(tint.s * 100 + 25) | 0}%,${30 + pulse * 100}%,.95)`); g.addColorStop(1, `hsla(${tint.h},${(tint.s * 100) | 0}%,6%,0)`);
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+  }
+}
+
+// textures
+function canvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+function tex(c) { const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t; }
+function coverTex(a) {
+  const c = canvas(256, 256), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 256, 256);
+  g.addColorStop(0, '#2d3a55'); g.addColorStop(1, '#6b3a5a'); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+  x.fillStyle = '#fff'; x.textAlign = 'center';
+  x.font = 'bold 24px system-ui'; x.fillText(a.title, 128, 120, 230);
+  x.font = '18px system-ui'; x.fillText(a.artist, 128, 152, 230);
+  return tex(c);
+}
+// album tint: from the cover's average colour when known, otherwise a stable hue from the name
+function cLab(a) {
+  if (a.col) {
+    const [r, g, b] = a.col.map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, l = (mx + mn) / 2;
+    let h = 0; if (d) h = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    const sat = d / ((1 - Math.abs(2 * l - 1)) || 1);
+    return { h: h * 60, s: sat < 0.08 ? 0 : Math.min(0.6, Math.max(0.3, sat * 1.1)) };
+  }
+  let h = 0; for (const ch of a.title + a.artist) h = (h * 31 + ch.charCodeAt(0)) % 360;
+  return { h, s: 0.4 };
+}
+const hsl = (t, l, s = t.s) => `hsl(${t.h.toFixed(0)},${(s * 100).toFixed(0)}%,${(l * 100).toFixed(0)}%)`;
+const FONT = '"Segoe UI Variable Text","Segoe UI",Inter,system-ui,sans-serif';
+function fitFont(x, text, maxW, size, min, weight = 700) {
+  let n = size; x.font = `${weight} ${n}px ${FONT}`;
+  while (x.measureText(text).width > maxW && n > min) { n--; x.font = `${weight} ${n}px ${FONT}`; }
+  return n;
+}
+const showArtist = a => a.artist && a.artist !== 'Unknown Artist';
+
+// spine used when there is no official spine scan: black plastic frame, printed card with the album name
+function spineCanvas(a) {
+  const t = cLab(a), c = canvas(128, 1024), x = c.getContext('2d'); x.scale(2, 2);
+  x.fillStyle = '#0b0b0d'; x.fillRect(0, 0, 64, 512);
+  const g = x.createLinearGradient(0, 0, 64, 0);
+  g.addColorStop(0, hsl(t, 0.3)); g.addColorStop(0.5, hsl(t, 0.22)); g.addColorStop(1, hsl(t, 0.16));
+  x.fillStyle = g; x.fillRect(6, 10, 52, 492);
+  x.fillStyle = 'rgba(255,255,255,.14)'; x.fillRect(6, 10, 52, 2);
+  x.save(); x.beginPath(); x.rect(6, 10, 52, 492); x.clip();
+  x.translate(14, 24); x.rotate(Math.PI / 2); x.fillStyle = '#fff';
+  fitFont(x, a.title, 462, 22, 11); x.fillText(a.title, 0, 0, 462);
+  if (showArtist(a)) { x.fillStyle = 'rgba(255,255,255,.68)'; fitFont(x, a.artist, 462, 13, 9, 500); x.fillText(a.artist, 0, -26, 462); }
+  x.restore();
+  return c;
+}
+function setSpine(a, c) {
+  if (!a.on) return; kick();
+  const old = a.spine; a.spine = tex(c);
+  if (a.spMat) { a.spMat.map = a.spine; a.spMat.needsUpdate = true; }
+  if (old) old.dispose();
+}
+// clean generated inner surfaces (used only when there is no official scan; the cover art stays on the front)
+function backCanvas(a) {                      // back insert: title and numbered track list
+  const c = canvas(768, 672), x = c.getContext('2d'), t = cLab(a);
+  const g = x.createLinearGradient(0, 0, 768, 672); g.addColorStop(0, hsl(t, 0.32)); g.addColorStop(1, hsl(t, 0.15));
+  x.fillStyle = g; x.fillRect(0, 0, 768, 672);
+  x.fillStyle = hsl(t, 0.6); x.fillRect(48, 44, 6, 62);
+  x.fillStyle = '#fff'; fitFont(x, a.title, 640, 40, 20); x.fillText(a.title, 70, 80, 640);
+  x.fillStyle = 'rgba(255,255,255,.62)'; x.font = `500 22px ${FONT}`;
+  x.fillText([showArtist(a) && a.artist, a.year].filter(Boolean).join('  ·  '), 70, 108, 640);
+  const tr = a.tracks, cols = tr.length > 28 ? 3 : tr.length > 12 ? 2 : 1, per = Math.ceil(tr.length / cols);
+  const lh = Math.max(15, Math.min(34, 460 / Math.max(per, 1))), fs = Math.floor(lh * 0.62), cw = 660 / cols;
+  x.font = `500 ${fs}px ${FONT}`;
+  tr.forEach((tk, i) => {
+    const X = 70 + Math.floor(i / per) * cw, Y = 176 + (i % per) * lh;
+    x.fillStyle = 'rgba(255,255,255,.4)'; x.fillText(String(i + 1).padStart(2, '0'), X, Y);
+    x.fillStyle = 'rgba(255,255,255,.88)'; x.fillText(tk.t || '', X + fs * 2.2, Y, cw - fs * 2.2 - 20);
+  });
+  return c;
+}
+function bookletCanvas(a) {                   // booklet page: paper with a tinted header
+  const c = canvas(768, 768), x = c.getContext('2d'), t = cLab(a);
+  x.fillStyle = '#eee8dc'; x.fillRect(0, 0, 768, 768);
+  const v = x.createRadialGradient(384, 384, 240, 384, 384, 560); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(60,40,20,.14)');
+  x.fillStyle = v; x.fillRect(0, 0, 768, 768);
+  x.fillStyle = hsl(t, 0.3); x.fillRect(0, 0, 768, 190);
+  x.fillStyle = '#fff'; fitFont(x, a.title, 640, 52, 22); x.fillText(a.title, 64, 112, 640);
+  x.fillStyle = hsl(t, 0.6); x.fillRect(64, 142, 80, 5);
+  x.fillStyle = '#2b241d'; if (showArtist(a)) { fitFont(x, a.artist, 640, 34, 16, 600); x.fillText(a.artist, 64, 262, 640); }
+  x.fillStyle = 'rgba(43,36,29,.55)'; x.font = `500 22px ${FONT}`;
+  x.fillText([a.year, a.tracks.length + (a.tracks.length === 1 ? ' track' : ' tracks')].filter(Boolean).join('  ·  '), 64, 304);
+  x.strokeStyle = hsl(t, 0.45); x.globalAlpha = 0.3; x.lineWidth = 3;
+  for (let r = 60; r < 260; r += 28) { x.beginPath(); x.arc(610, 630, r, 0, 7); x.stroke(); }
+  return c;
+}
+function discFromCover(im) {                  // disc printed with the album cover
+  const c = canvas(512, 512), x = c.getContext('2d');
+  x.drawImage(discTex.image, 0, 0, 512, 512);
+  x.save(); x.beginPath(); x.arc(256, 256, 244, 0, Math.PI * 2); x.moveTo(340, 256); x.arc(256, 256, 84, 0, Math.PI * 2, true); x.clip();
+  x.drawImage(im, 0, 0, 512, 512);
+  x.strokeStyle = 'rgba(255,255,255,.07)'; x.lineWidth = 1;
+  for (let r = 90; r < 244; r += 6) { x.beginPath(); x.arc(256, 256, r, 0, 7); x.stroke(); }
+  x.restore();
+  x.strokeStyle = 'rgba(255,255,255,.45)'; x.lineWidth = 5; x.beginPath(); x.arc(256, 256, 250, 0, 7); x.stroke();
+  return c;
+}
+function photoCanvas(im) {                    // band photo filling the booklet page, framed toward the top so faces stay in
+  const c = canvas(768, 768), x = c.getContext('2d'), k = Math.max(768 / im.width, 768 / im.height), w = im.width * k, h = im.height * k;
+  x.drawImage(im, (768 - w) / 2, (768 - h) * 0.3, w, h);
+  return c;
+}
+function trayCanvas(a) {                      // tray card: tinted dark with faint rings
+  const c = canvas(768, 688), x = c.getContext('2d'), t = cLab(a);
+  const g = x.createLinearGradient(0, 0, 768, 688); g.addColorStop(0, hsl(t, 0.2)); g.addColorStop(1, hsl(t, 0.08));
+  x.fillStyle = g; x.fillRect(0, 0, 768, 688);
+  x.strokeStyle = 'rgba(255,255,255,.05)'; x.lineWidth = 2;
+  for (let r = 40; r < 520; r += 22) { x.beginPath(); x.arc(396, 344, r, 0, 7); x.stroke(); }
+  return c;
+}
+function discCanvas(a) {                      // printed disc: silver rim, tinted label ring, album name
+  const c = canvas(512, 512), x = c.getContext('2d'), t = cLab(a);
+  x.drawImage(discTex.image, 0, 0, 512, 512);
+  x.save(); x.beginPath(); x.arc(256, 256, 244, 0, Math.PI * 2); x.moveTo(340, 256); x.arc(256, 256, 84, 0, Math.PI * 2, true); x.clip();
+  const g = x.createRadialGradient(256, 256, 84, 256, 256, 244); g.addColorStop(0, hsl(t, 0.34)); g.addColorStop(1, hsl(t, 0.17));
+  x.fillStyle = g; x.fillRect(0, 0, 512, 512);
+  x.strokeStyle = 'rgba(255,255,255,.06)'; x.lineWidth = 1;
+  for (let r = 90; r < 244; r += 6) { x.beginPath(); x.arc(256, 256, r, 0, 7); x.stroke(); }
+  x.restore();
+  x.textAlign = 'center'; x.fillStyle = '#fff'; fitFont(x, a.title, 300, 30, 13); x.fillText(a.title, 256, 352, 320);
+  if (showArtist(a)) { x.fillStyle = 'rgba(255,255,255,.7)'; fitFont(x, a.artist, 280, 20, 11, 500); x.fillText(a.artist, 256, 382, 300); }
+  x.strokeStyle = 'rgba(255,255,255,.4)'; x.lineWidth = 5; x.beginPath(); x.arc(256, 256, 250, 0, 7); x.stroke();
+  return c;
+}
+const discTex = (() => {
+  const c = canvas(256, 256), x = c.getContext('2d'), g = x.createConicGradient(0, 128, 128);
+  ['#e8e8f0', '#b9c7ff', '#f1f1f1', '#ffd6e8', '#e8e8f0', '#c8ffe0', '#f1f1f1', '#e8e8f0'].forEach((col, i, arr) => g.addColorStop(i / (arr.length - 1), col));
+  x.fillStyle = g; x.beginPath(); x.arc(128, 128, 128, 0, 7); x.fill(); return tex(c);
+})();
+const discMat = new THREE.MeshStandardMaterial({ map: discTex, metalness: 0.6, roughness: 0.25, side: THREE.FrontSide });
+// scratch layout is generated once so the same scuffs show on the print, the shiny side and the roughness map
+const SCR = (() => {
+  let sd = 20261016; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const L = [], pt = (r, a) => [256 + Math.cos(a) * r, 256 + Math.sin(a) * r];
+  for (let i = 0; i < 300; i++) L.push({ k: 'arc', r: 88 + rnd() * 160, a: rnd() * 6.283, s: 0.12 + Math.pow(rnd(), 2.2) * 2.4, w: 0.4 + rnd() * 0.8, al: 0.2 + rnd() * 0.5, light: rnd() > 0.35 });
+  for (let i = 0; i < 36; i++) { const a1 = rnd() * 6.283; L.push({ k: 'line', p: pt(90 + rnd() * 158, a1), q: pt(90 + rnd() * 158, a1 + (rnd() - 0.5) * 2.4), bend: (rnd() - 0.5) * 60, w: 0.5 + rnd() * 1.1, al: 0.35 + rnd() * 0.5, light: rnd() > 0.25 }); }
+  for (let i = 0; i < 5; i++) { const a1 = rnd() * 6.283; L.push({ k: 'line', p: pt(92 + rnd() * 40, a1), q: pt(200 + rnd() * 46, a1 + (rnd() - 0.5) * 1.6), bend: (rnd() - 0.5) * 30, w: 1.5 + rnd() * 1, al: 0.7, light: true }); }
+  return L;
+})();
+function drawScratches(x, mode, k = 1) {   // mode 'c' = colour, 'r' = roughness map (scratches are rough)
+  x.save(); x.beginPath(); x.arc(256, 256, 248, 0, 7); x.arc(256, 256, 88, 0, 7, true); x.clip(); x.lineCap = 'round';
+  for (const q of SCR) {
+    x.lineWidth = q.w * (mode === 'r' ? 1.7 : 1);
+    x.strokeStyle = mode === 'r' ? `rgba(255,255,255,${Math.min(1, q.al * 1.5 * k)})` : q.light ? `rgba(255,255,255,${q.al * k})` : `rgba(10,10,20,${q.al * 0.55 * k})`;
+    x.beginPath();
+    if (q.k === 'arc') x.arc(256, 256, q.r, q.a, q.a + q.s);
+    else { x.moveTo(q.p[0], q.p[1]); x.quadraticCurveTo((q.p[0] + q.q[0]) / 2 + q.bend, (q.p[1] + q.q[1]) / 2 - q.bend, q.q[0], q.q[1]); }
+    x.stroke();
+  }
+  x.restore();
+}
+function discBackCanvas(scr) {               // the playing side: bare mirror-silver, rainbow sheen, clear hub, no artwork
+  const c = canvas(512, 512), x = c.getContext('2d'), C = 256, ring = (r0, r1) => { x.beginPath(); x.arc(C, C, r1, 0, 7); x.arc(C, C, r0, 0, 7, true); };
+  x.fillStyle = '#1b1d22'; x.fillRect(0, 0, 512, 512);
+  x.save(); x.beginPath(); x.arc(C, C, 254, 0, 7); x.clip();
+  const g = x.createConicGradient(0.6, C, C); ['#f6f8fc', '#dde3ee', '#ffffff', '#cdd5e3', '#f6f8fc', '#e4e8f2', '#ffffff', '#d6dce8', '#f6f8fc'].forEach((col, i, a) => g.addColorStop(i / (a.length - 1), col));
+  x.fillStyle = g; x.fillRect(0, 0, 512, 512);
+  const rb = x.createConicGradient(0, C, C); ['#ff8fb1', '#ffd98a', '#9dffb0', '#86d8ff', '#b79bff', '#ff8fb1'].forEach((col, i, a) => rb.addColorStop(i / (a.length - 1), col));
+  x.globalAlpha = 0.24; x.fillStyle = rb; ring(96, 246); x.fill(); x.globalAlpha = 1;
+  x.lineWidth = 1; for (let r = 98; r < 246; r += 3) { x.strokeStyle = ((r / 3) | 0) % 2 ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.045)'; x.beginPath(); x.arc(C, C, r, 0, 7); x.stroke(); }
+  const hg = x.createRadialGradient(C, C, 34, C, C, 84); hg.addColorStop(0, '#aab1bc'); hg.addColorStop(1, '#d6dbe3');
+  x.fillStyle = hg; ring(30, 84); x.fill();
+  x.strokeStyle = 'rgba(255,255,255,.8)'; x.lineWidth = 3; x.beginPath(); x.arc(C, C, 87, 0, 7); x.stroke();
+  x.strokeStyle = 'rgba(0,0,0,.18)'; x.lineWidth = 1.5; x.beginPath(); x.arc(C, C, 84, 0, 7); x.stroke();
+  x.strokeStyle = 'rgba(255,255,255,.9)'; x.lineWidth = 6; x.beginPath(); x.arc(C, C, 250, 0, 7); x.stroke();
+  if (scr) drawScratches(x, 'c', 1);
+  x.restore(); return c;
+}
+const backMapClean = tex(discBackCanvas(false)), backMapScr = tex(discBackCanvas(true));
+const backRough = (() => { const c = canvas(512, 512), y = c.getContext('2d'); y.fillStyle = '#262626'; y.fillRect(0, 0, 512, 512); drawScratches(y, 'r'); return new THREE.CanvasTexture(c); })();
+const discBackMat = new THREE.MeshPhysicalMaterial({ map: backMapClean, color: 0xffffff, metalness: 1, roughness: 0.05, clearcoat: 1, clearcoatRoughness: 0.02, envMapIntensity: 1.9, side: THREE.BackSide });
+function applyBackMaps() {
+  const sc = SET.scratch;
+  discBackMat.map = sc ? backMapScr : backMapClean; discBackMat.roughnessMap = sc ? backRough : null;
+  discBackMat.roughness = sc ? 1 : 0.05; discBackMat.clearcoatRoughness = sc ? 0.4 : 0.02; discBackMat.needsUpdate = true;
+}
+applyBackMaps();
+
+// environment reflections, wood, materials
+(() => {
+  const c = canvas(512, 256), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 0, 256);
+  g.addColorStop(0, '#d5deee'); g.addColorStop(0.5, '#6b5a4a'); g.addColorStop(1, '#1a1410');
+  x.fillStyle = g; x.fillRect(0, 0, 512, 256); x.fillStyle = '#fff'; x.fillRect(60, 40, 120, 50); x.fillRect(300, 30, 160, 40);
+  const t = new THREE.CanvasTexture(c); t.mapping = THREE.EquirectangularReflectionMapping; t.encoding = THREE.sRGBEncoding;
+  scene.environment = new THREE.PMREMGenerator(ren).fromEquirectangular(t).texture;
+})();
+function woodCanvas(w, h, seed, dark, light) {
+  const c = canvas(w, h), x = c.getContext('2d'), img = x.createImageData(w, h), d = img.data;
+  let sd = seed * 7919 + 13; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  const T = new Float32Array(256); for (let i = 0; i < 256; i++) T[i] = rnd();
+  const fade = t => t * t * (3 - 2 * t), H = (i, j) => T[((i * 73856093) ^ (j * 19349663)) & 255];
+  const n2 = (px, py) => {
+    const xi = Math.floor(px), yi = Math.floor(py), fx = fade(px - xi), fy = fade(py - yi);
+    const a = H(xi, yi), b = H(xi + 1, yi), c2 = H(xi, yi + 1), d2 = H(xi + 1, yi + 1);
+    return a + (b - a) * fx + (c2 - a) * fy + (a - b - c2 + d2) * fx * fy;
+  };
+  for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) {
+    const warp = n2(px * 0.003, py * 0.012) * 2.2 + n2(px * 0.011, py * 0.04) * 0.6;
+    const ring = py / h * 10 + warp * 1.6, f = ring - Math.floor(ring), v = Math.pow(f, 1.6);
+    const streak = n2(px * 0.012, py * 0.7), pore = n2(px * 0.25, py * 0.9) > 0.82 ? 0.12 : 0;
+    const t = Math.max(0, Math.min(1, 0.5 * v + 0.35 * streak + 0.15 * n2(px * 0.002, py * 0.005) - pore)), k = (py * w + px) * 4;
+    d[k] = dark[0] + (light[0] - dark[0]) * t; d[k + 1] = dark[1] + (light[1] - dark[1]) * t; d[k + 2] = dark[2] + (light[2] - dark[2]) * t; d[k + 3] = 255;
+  }
+  x.putImageData(img, 0, 0); return c;
+}
+const aniso = t => { t.anisotropy = Math.min(8, ren.capabilities.getMaxAnisotropy()); return t; };
+
+// ---- shelf styles: each one is a board / side / back-wall material set, built the first time it is chosen ----
+const repeatTex = c => { const t = aniso(tex(c)); t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; };
+function speckle(c, base, spread, n, sz, seed = 5) {
+  const x = c.getContext('2d'); x.fillStyle = `rgb(${base})`; x.fillRect(0, 0, c.width, c.height);
+  let sd = seed * 977 + 1; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < n; i++) { const v = (rnd() - 0.5) * spread, w = v > 0 ? 255 : 0; x.fillStyle = `rgba(${w},${w},${w},${Math.abs(v) / 255})`; x.fillRect(rnd() * c.width, rnd() * c.height, 1 + rnd() * sz, 1 + rnd() * sz); }
+  return x;
+}
+function woodWall(d, l) {
+  const Sz = 1024, n = 4, pw = Sz / n, c = canvas(Sz, Sz), x = c.getContext('2d');
+  for (let i = 0; i < n; i++) {
+    x.save(); x.translate(i * pw + pw, 0); x.rotate(Math.PI / 2);
+    x.drawImage(woodCanvas(768, 192, 11 + i * 5, d, [l[0] + i * 4, l[1] + i * 3, l[2] + i * 2]), 0, 0, Sz, pw); x.restore();
+    x.fillStyle = 'rgba(0,0,0,.65)'; x.fillRect(i * pw, 0, 3, Sz);
+  }
+  return c;
+}
+const WALLS = {
+  plaster: () => { const c = canvas(512, 512); speckle(c, [224, 220, 212], 46, 9000, 3); return c; },
+  concrete: () => {
+    const c = canvas(512, 512), x = speckle(c, [92, 97, 102], 80, 16000, 4);
+    x.fillStyle = 'rgba(0,0,0,.45)'; x.fillRect(0, 0, 512, 3); x.fillRect(0, 0, 3, 512); x.fillRect(255, 0, 2, 512); x.fillRect(0, 255, 512, 2);
+    for (const [px, py] of [[20, 20], [236, 20], [20, 236], [236, 236], [276, 20], [492, 20], [276, 236], [492, 236], [20, 276], [236, 276], [20, 492], [236, 492], [276, 276], [492, 276], [276, 492], [492, 492]]) { x.fillStyle = 'rgba(0,0,0,.5)'; x.beginPath(); x.arc(px, py, 4, 0, 7); x.fill(); x.fillStyle = 'rgba(255,255,255,.12)'; x.beginPath(); x.arc(px - 1, py - 1, 2, 0, 7); x.fill(); }
+    return c;
+  },
+  panel: () => {
+    const c = canvas(512, 512), x = c.getContext('2d'), g = x.createLinearGradient(0, 0, 512, 0); g.addColorStop(0, '#0a0a10'); g.addColorStop(1, '#15151f');
+    x.fillStyle = g; x.fillRect(0, 0, 512, 512);
+    for (let i = 0; i < 512; i += 64) { x.fillStyle = 'rgba(255,255,255,.04)'; x.fillRect(i, 0, 2, 512); x.fillStyle = 'rgba(0,0,0,.5)'; x.fillRect(i + 2, 0, 3, 512); }
+    return c;
+  }
+};
+const STYLES = {
+  walnut: { n: 'Walnut', wood: [[58, 34, 19], [188, 130, 74], [176, 120, 68]], wall: { wood: [[24, 14, 9], [88, 56, 34]] }, sw: 'linear-gradient(90deg,#4a2b17,#b27a45)' },
+  oak: { n: 'Oak', wood: [[120, 84, 50], [232, 196, 146], [224, 186, 136]], wall: { wood: [[70, 48, 28], [160, 118, 76]] }, sw: 'linear-gradient(90deg,#a47a4a,#e8c996)' },
+  ebony: { n: 'Ebony', wood: [[10, 9, 9], [58, 50, 46], [52, 44, 40]], wall: { wood: [[8, 7, 7], [34, 29, 26]] }, sw: 'linear-gradient(90deg,#0c0a0a,#3b322e)' },
+  white: { n: 'White', solid: [0xeeece6, 0xe2dfd8], wall: { tex: 'plaster', x: true }, sw: 'linear-gradient(90deg,#d9d5cc,#f6f4ef)' },
+  steel: { n: 'Industrial', metal: true, wall: { tex: 'concrete', x: true }, sw: 'linear-gradient(90deg,#4a5057,#8a939b)' },
+  clear: { n: 'Clear', glass: true, sw: 'linear-gradient(90deg,rgba(214,232,248,.18),rgba(214,232,248,.7))' },
+  neon: { n: 'Neon', solid: [0x0d0d12, 0x08080b], glow: 0xb04cff, wall: { tex: 'panel', x: true }, sw: 'linear-gradient(90deg,#0d0d12,#b04cff)' }
+};
+const mkWood = (map, bump, rough) => new THREE.MeshStandardMaterial({ map, bumpMap: map, bumpScale: bump, roughness: rough, envMapIntensity: 0.55 });
+function shelfMats(key) {
+  const st = STYLES[key] || STYLES.walnut; if (st.m) return st.m;
+  let board, side;
+  if (st.glass) {   // see-through boards and sides, no back wall: the background shows through
+    board = new THREE.MeshStandardMaterial({ color: 0xd6e8f8, transparent: true, opacity: 0.22, roughness: 0.08, envMapIntensity: 1.4, depthWrite: false });
+    side = board.clone();
+    return st.m = { board, side, wall: null, wt: null, wide: false, clear: true };
+  }
+  if (st.wood) {
+    const [d, l, l2] = st.wood, c = canvas(256, 1024), x = c.getContext('2d');
+    x.translate(256, 0); x.rotate(Math.PI / 2); x.drawImage(woodCanvas(1024, 256, 7, d, l2), 0, 0, 1024, 256);
+    board = mkWood(repeatTex(woodCanvas(1024, 512, 3, d, l)), 0.6, 0.5); side = mkWood(aniso(tex(c)), 0.6, 0.5);
+  } else if (st.solid) {
+    board = new THREE.MeshStandardMaterial({ color: st.solid[0], roughness: 0.3, envMapIntensity: 0.7 });
+    side = board.clone(); side.color.set(st.solid[1]);
+  } else {
+    board = new THREE.MeshStandardMaterial({ color: 0x5b636b, metalness: 0.85, roughness: 0.36, envMapIntensity: 1.3 });
+    side = board.clone(); side.color.set(0x474e55);
+  }
+  const wt = repeatTex(st.wall.wood ? woodWall(...st.wall.wood) : WALLS[st.wall.tex]());
+  const wall = new THREE.MeshStandardMaterial({ map: wt, bumpMap: wt, bumpScale: 0.4, roughness: 0.85, envMapIntensity: 0.2 });
+  return st.m = { board, side, wall, wt, wide: !!st.wall.x };
+}
+
+const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xdde6ee, transparent: true, opacity: 0.16, roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.03, envMapIntensity: 1.6, depthWrite: false });
+const frameMat = new THREE.MeshPhysicalMaterial({ color: 0xdfe8f0, transparent: true, opacity: 0.4, roughness: 0.12, clearcoat: 1, depthWrite: false });
+const teethMat = new THREE.MeshStandardMaterial({ color: 0x17171a, roughness: 0.5, flatShading: true });
+const hubMat = new THREE.MeshPhysicalMaterial({ color: 0xcfd8e0, transparent: true, opacity: 0.6, roughness: 0.1, clearcoat: 1, side: THREE.DoubleSide, depthWrite: false });
+const trayMat = new THREE.MeshStandardMaterial({ color: 0x0c0c0e, roughness: 0.34 });
+const paper = new THREE.MeshStandardMaterial({ color: 0xe8e4da, roughness: 0.8 });
+
+
+// artwork loading (shelf gets 256px, the open case gets a sharper one)
+function loadImg(src) { return new Promise((res, rej) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = rej; im.src = src; }); }
+const spineSrc = a => [(a.local || {}).spine, (a.art || {}).spine].filter(Boolean);
+async function applySpine(a) {
+  if (a.noSpine || a.spining || a.spineKind === 'official') return;
+  const urls = spineSrc(a); if (!urls.length) return;
+  a.spining = true;
+  try {   // official spine scan: upright, keeps its proportions, framed in black plastic
+    let im = null;
+    for (const u of urls) { try { im = await loadImg(u); break; } catch {} }
+    if (!im) throw new Error('spine did not load');
+    let src = im;
+    if (im.width > im.height) {   // text runs horizontally: turn it so it reads top to bottom
+      src = canvas(im.height, im.width); const rx = src.getContext('2d'); rx.translate(im.height, 0); rx.rotate(Math.PI / 2); rx.drawImage(im, 0, 0);
+    }
+    const sw = src.width, sh = src.height, e = sw / sh, T = 52 / 492;
+    if (e > 0.35) throw new Error('not a spine strip');   // a cover/back mislabelled as a spine would only get squashed
+    const c = canvas(128, 1024), x = c.getContext('2d'); x.scale(2, 2);
+    x.fillStyle = '#0b0b0d'; x.fillRect(0, 0, 64, 512);
+    if (e >= T) { const cw = sh * T; x.drawImage(src, (sw - cw) / 2, 0, cw, sh, 6, 10, 52, 492); }       // a little wider: crop the middle
+    else { const w = 492 * e; x.drawImage(src, 0, 0, sw, sh, 6 + (52 - w) / 2, 10, w, 492); }            // thinner: fit, never stretch
+    setSpine(a, c); a.realSpine = true; a.spineKind = 'official'; cacheSpine(a, c, 'o');
+  } catch (err) { a.realSpine = false; if (/not a spine/.test(err.message)) a.noSpine = true; }   // load trouble: keep the generated one for now, retry later
+  a.spining = false;
+}
+// no spine scan? The back insert carries the title strip on its right edge (the spine side seen from behind): stretch it onto the spine
+function backSpine(a, im) {
+  if (a.spineKind === 'official' || a.spineKind === 'back') return;
+  try {
+    const w = im.naturalWidth || im.width, h = im.naturalHeight || im.height, W = Math.min(w, 600), H = Math.round(h * W / w);
+    const t = canvas(W, H), tx = t.getContext('2d', { willReadFrequently: true }); tx.drawImage(im, 0, 0, W, H);
+    const d = tx.getImageData(0, 0, W, H).data, m = new Float32Array(W);
+    for (let xx = 0; xx < W; xx++) { let sum = 0, n = 0; for (let y = Math.floor(H * 0.1); y < H * 0.9; y += 3) { const i = (y * W + xx) * 4; sum += d[i] * 0.3 + d[i + 1] * 0.59 + d[i + 2] * 0.11; n++; } m[xx] = sum / n; }
+    let bx = -1, bv = 0;   // fold line of the spine panel = strongest change in column brightness near the right edge
+    for (let xx = Math.floor(W * 0.9); xx < Math.floor(W * 0.97); xx++) { const v = Math.abs(m[xx] - m[xx - 2]); if (v > bv) { bv = v; bx = xx; } }
+    let sx = W * 0.945, ex = W * 0.997;
+    if (bv > 7) { const s2 = bx + Math.max(1, W * 0.004), e2 = W - W * 0.006; if (e2 - s2 > W * 0.025 && e2 - s2 < W * 0.09) { sx = s2; ex = e2; } }
+    const c = canvas(128, 1024), x = c.getContext('2d'); x.scale(2, 2);
+    x.fillStyle = '#0b0b0d'; x.fillRect(0, 0, 64, 512);
+    x.drawImage(t, sx, H * 0.015, ex - sx, H * 0.97, 6, 10, 52, 492);       // stretched to fill the spine card
+    x.fillStyle = 'rgba(255,255,255,.12)'; x.fillRect(6, 10, 52, 2);
+    setSpine(a, c); a.realSpine = true; a.spineKind = 'back'; cacheSpine(a, c, 'b');
+  } catch {}
+}
+// finished spines are saved to disk by the app, so scrolling never has to download or decode full-size scans again
+function cacheSpine(a, c, kind) { try { a.spc = kind; a.spv = Date.now(); api.cacheSpine(a.id, c.toDataURL('image/jpeg', 0.92), kind); } catch {} }
+async function loadCachedSpine(a) {
+  if (a.spLoad) return; a.spLoad = 1;
+  try {
+    const im = await loadImg(`shelf://s/${a.id}.${a.spc}.jpg?v=${a.spv || 0}`);
+    if (!a.on || a.spineKind === 'official') return;
+    const c = canvas(128, 1024); c.getContext('2d').drawImage(im, 0, 0, 128, 1024);
+    setSpine(a, c); a.realSpine = true; a.spineKind = a.spc === 'o' ? 'official' : 'back';
+    if (a.spineKind === 'back' && spineSrc(a).length) applySpine(a);   // an official scan has turned up since: upgrade
+  } catch { a.spc = null; if (a.on) { if (spineSrc(a).length) applySpine(a); queueBack(a); } }
+  a.spLoad = 0;
+}
+// no official spine: build one from the back insert while the case is still on the shelf (one at a time, nearest rows first)
+const BQ = { q: [], run: false };
+function queueBack(a) {
+  if (!SET.backSpine || a.bq || !a.on || a.spineKind === 'official' || a.spineKind === 'back') return;
+  if (!(a.local || {}).back && !(a.art || {}).back) return;
+  a.bq = 1; BQ.q.push(a); pumpBack();
+}
+async function pumpBack() {
+  if (BQ.run) return; BQ.run = true;
+  while (BQ.q.length) {
+    const a = BQ.q.shift(); a.bq = 0;
+    if (!a.on || a.spineKind === 'official' || a.spineKind === 'back') continue;
+    let im = null;
+    for (const u of [(a.local || {}).back, (a.art || {}).back]) { if (!u) continue; try { im = await loadImg(u); break; } catch {} }
+    if (im && a.on && SET.backSpine) backSpine(a, im);
+    await sleep(40);
+  }
+  BQ.run = false;
+}
+async function hiRes(a) {
+  const art = a.art || {}, loc = a.local || {}, ok = () => open && open.userData.album === a;
+  const big = (im, w, h) => { const c = canvas(w, h); c.getContext('2d').drawImage(im, 0, 0, w, h); return tex(c); };
+  // try each source in order (local scan, online scan); if none loads, call miss
+  const job = async (srcs, fn, miss) => {
+    let im = null;
+    for (const u of srcs) { if (!u) continue; try { im = await loadImg(u); break; } catch {} }
+    if (!ok()) return;
+    if (im) fn(im); else if (miss) miss();
+    kick(400);
+  };
+  const put = (mat, key, w, h, white) => im => {
+    if (a[key]) a[key].dispose();
+    mat.map = a[key] = big(im, w, h); if (white) mat.color.set(0xffffff); mat.needsUpdate = true;
+  };
+  const setDisc = im => {
+    const c = canvas(512, 512), cx = c.getContext('2d'); cx.drawImage(im, 0, 0, 512, 512);
+    if (a.mt) a.mt.dispose(); a.dm.map = a.mt = tex(c); a.dm.needsUpdate = true;
+  };
+  const setBack0 = put(a.bm, 'bt', 768, 672, true);
+  const setBack = setBack0, setTray = put(a.tm, 'tt', 768, 688, true), setLid = put(a.pm, 'pt', 768, 768, true);
+  const cov = a.big || a.cover || art.front, covP = cov ? loadImg(cov).catch(() => null) : Promise.resolve(null);
+  job([a.big, a.cover], put(a.lm, 'hi', 768, 768));
+  // official scans first; otherwise a clean generated design (the cover itself stays on the front only)
+  job([loc.medium, art.medium], setDisc, () => covP.then(im => { if (ok()) setDisc(im ? discFromCover(im) : discCanvas(a)); }));
+  job([loc.tray, art.tray], setTray, () => setTray(trayCanvas(a)));
+  const lidMiss = async () => {   // no booklet scan: local band photo, then an online one, then a plain generated page
+    let im = null;
+    if (loc.photo) try { im = await loadImg(loc.photo); } catch {}
+    if (!im && SET.online) { const u = await artistPhoto(a.artist); if (u) try { im = await loadImg(u); } catch {} }
+    if (ok()) setLid(im ? photoCanvas(im) : bookletCanvas(a));
+  };
+  job([loc.booklet, art.booklet], setLid, lidMiss);
+  job([loc.back, art.back], im => { setBack(im); if (SET.backSpine) backSpine(a, im); }, () => setBack(backCanvas(a)));
+}
+function loRes(a) {
+  if (a.hi) { a.hi.dispose(); a.hi = null; if (a.tex) { a.lm.map = a.tex; a.lm.needsUpdate = true; } }
+  if (a.mt) { a.mt.dispose(); a.mt = null; a.dm.map = discTex; a.dm.needsUpdate = true; }
+  if (a.bt) { a.bt.dispose(); a.bt = null; a.bm.map = null; a.bm.color.set(0x0c0c0e); a.bm.needsUpdate = true; }
+  if (a.tt) { a.tt.dispose(); a.tt = null; a.tm.map = null; a.tm.color.set(0x0c0c0e); a.tm.needsUpdate = true; }
+  if (a.pt) { a.pt.dispose(); a.pt = null; a.pm.map = null; a.pm.color.set(0xe8e4da); a.pm.needsUpdate = true; }
+}
+
+
+// cover on the shelf (256px, cached on disk by the app) and its dominant colour, which tints the generated spine
+async function applyCover(a, colorOnly) {
+  try {
+    const im = await loadImg(a.cover), c = canvas(256, 256); kick(); c.getContext('2d').drawImage(im, 0, 0, 256, 256);
+    if (!colorOnly && a.on) { if (a.tex) a.tex.dispose(); a.tex = tex(c); if (a.lm) { const old = a.lm.map; a.lm.map = a.tex; a.lm.needsUpdate = true; if (old && old !== a.tex) old.dispose(); } }
+    if (a.col) return;
+    try {   // dominant colour: biggest hue bucket weighted by saturation; plain average if the art is mostly grey
+      const t16 = canvas(16, 16), tx = t16.getContext('2d'); tx.drawImage(c, 0, 0, 16, 16);
+      const px = tx.getImageData(0, 0, 16, 16).data, bk = Array.from({ length: 12 }, () => ({ w: 0, r: 0, g: 0, b: 0 }));
+      let ar = 0, ag = 0, ab = 0, an = 0;
+      for (let i = 0; i < px.length; i += 4) {
+        const r = px[i], g = px[i + 1], b = px[i + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, l = (mx + mn) / 510;
+        ar += r; ag += g; ab += b; an++;
+        if (d < 20 || l < 0.1 || l > 0.92) continue;
+        const h = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+        const o = bk[Math.floor(h * 2) % 12], w = d / 255 + 0.05; o.w += w; o.r += r * w; o.g += g * w; o.b += b * w;
+      }
+      const top = bk.reduce((p, q) => q.w > p.w ? q : p);
+      a.col = top.w > 0.6 ? [top.r / top.w, top.g / top.w, top.b / top.w] : [ar / an, ag / an, ab / an];
+      patch(a, { col: a.col.map(Math.round) });
+    } catch {}
+    if (a.col && !a.realSpine && a.on) setSpine(a, spineCanvas(a));
+  } catch {}
+}
+
+// shelf + cases
+const rrect = (w, h, r) => {
+  const sh = new THREE.Shape(), x = -w / 2, y = -h / 2;
+  sh.moveTo(x + r, y); sh.lineTo(x + w - r, y); sh.quadraticCurveTo(x + w, y, x + w, y + r);
+  sh.lineTo(x + w, y + h - r); sh.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  sh.lineTo(x + r, y + h); sh.quadraticCurveTo(x, y + h, x, y + h - r);
+  sh.lineTo(x, y + r); sh.quadraticCurveTo(x, y, x + r, y); return sh;
+};
+// shared geometry: rounded, bevelled black tray; lid frame with a window; flat panels
+const bodyGeo = (() => {
+  const g = new THREE.ExtrudeGeometry(rrect(CW - 0.016, CH - 0.016, 0.03), { depth: 0.064, bevelEnabled: true, bevelThickness: 0.008, bevelSize: 0.008, bevelSegments: 3, curveSegments: 6 });
+  g.translate(0, 0, -0.042); return g;   // z from -0.05 to TZ
+})();
+const frameGeo = (() => {
+  const sh = new THREE.Shape(), hx = CW / 2, hy = CH / 2;
+  sh.moveTo(-hx, -hy); sh.lineTo(hx, -hy); sh.lineTo(hx, hy); sh.lineTo(-hx, hy); sh.lineTo(-hx, -hy);
+  const x0 = -hx + 0.05, x1 = hx - 0.03, y0 = -hy + 0.03, y1 = hy - 0.03, ho = new THREE.Path();
+  ho.moveTo(x0, y0); ho.lineTo(x0, y1); ho.lineTo(x1, y1); ho.lineTo(x1, y0); ho.lineTo(x0, y0); sh.holes.push(ho);
+  const g = new THREE.ExtrudeGeometry(sh, { depth: 0.014, bevelEnabled: false }); g.translate(0, 0, -0.007); return g;
+})();
+const GEO = {
+  back: new THREE.PlaneGeometry(1.34, 1.17), floor: new THREE.PlaneGeometry(1.26, 1.13), spine: new THREE.PlaneGeometry(0.102, CH),
+  disc: new THREE.RingGeometry(0.075, 0.6, 64), hubRing: new THREE.RingGeometry(0.075, 0.19, 48), teeth: new THREE.CylinderGeometry(0.07, 0.07, 0.01, 12),
+  lid: new THREE.BoxGeometry(CW, CH, 0.012), inlay: new THREE.PlaneGeometry(IN, IN)
+};
+
+// ---- the shelf: only the rows near the camera exist as 3D objects, so 20,000 songs cost the same as 500 ----
+let quietBuild = false;
+let group = null, cases = [], LIST = [], rows = 1, camZ = 5.2, camY = 0, targetY = 0;
+const rowMap = new Map(); let mountQ = [], introUntil = 0, introStart = 0, wallGeo = null;
+const BOXG = new THREE.BoxGeometry(1, 1, 1);
+let glowMat = null;
+
+function fitCam() {
+  const sw = COLS * P + 0.5, need = (sw / 2 + 0.2) / (Math.tan(Math.PI / 8) * cam.aspect);
+  camZ = Math.max(5.2, need); cam.position.z = camZ; cam.updateProjectionMatrix();   // (a case opens 3 units in front of the camera, so it can't come much closer than this)
+}
+function spineMesh(a) {
+  const spMat = new THREE.MeshStandardMaterial({ map: a.spine = tex(spineCanvas(a)), roughness: 0.35, envMapIntensity: 0.8 });
+  const sp = new THREE.Mesh(GEO.spine, spMat); sp.rotation.y = -Math.PI / 2; sp.position.set(-CW / 2 - 0.0015, 0, 0.001);
+  a.spMat = spMat; return sp;
+}
+function mark3(g) { g.traverse(o => { o.userData.root = g; if (o.isMesh) { o.castShadow = o.geometry === bodyGeo; o.receiveShadow = true; } }); }
+
+// light case: just the tray and the spine, which is all a shelf ever shows
+function makeLite(a, i, now) {
+  const g = new THREE.Group(), col = i % COLS, row = Math.floor(i / COLS);
+  a.on = true; a.realSpine = false; a.spineKind = null; a.spining = false;
+  g.add(new THREE.Mesh(bodyGeo, trayMat)); g.add(spineMesh(a));
+  g.position.set((col - (COLS - 1) / 2) * P, -row * ROWH, 0); g.rotation.y = Math.PI / 2;
+  g.userData = { album: a, home: g.position.clone(), row, full: false, intro: null };
+  mark3(g);
+  if (S.intro && now < introUntil) { g.userData.intro = { t0: now + col * 16 + Math.max(0, row - Math.round(-targetY / ROWH)) * 70 }; g.visible = false; }
+  if (a.cover && !a.col) applyCover(a, true);          // only needed for the spine tint, and remembered after the first time
+  if (a.spc === 'o' || (a.spc === 'b' && SET.backSpine)) loadCachedSpine(a);
+  else { if (spineSrc(a).length) applySpine(a); queueBack(a); }
+  queueArt(a);
+  return g;
+}
+// full case (lid, disc, inserts): built only when a case is opened
+function upgrade(g) {
+  const u = g.userData; if (u.full) return; const a = u.album;
+  if (!a.spMat) { g.add(spineMesh(a)); if (spineSrc(a).length) applySpine(a); }
+  const bm = new THREE.MeshStandardMaterial({ color: 0x0c0c0e, roughness: 0.45 }), tm = trayMat.clone(), pm = paper.clone();
+  const back = new THREE.Mesh(GEO.back, bm); back.rotation.y = Math.PI; back.position.set(0, 0, -0.0505); g.add(back);
+  const floor = new THREE.Mesh(GEO.floor, tm); floor.position.set(INX, 0, TZ + 0.0006); g.add(floor);
+  const teeth = new THREE.Mesh(GEO.teeth, teethMat); teeth.rotation.x = Math.PI / 2; teeth.position.set(INX, 0, TZ + 0.005); g.add(teeth);
+  const dm = discMat.clone(), disc = new THREE.Mesh(GEO.disc, dm); disc.position.set(INX, 0, TZ + 0.003); g.add(disc);
+  disc.add(new THREE.Mesh(GEO.disc, discBackMat));
+  const hub = new THREE.Mesh(GEO.hubRing, hubMat); hub.position.z = 0.0008; disc.add(hub);
+  const piv = new THREE.Group(); piv.position.set(-CW / 2, 0, LZ); g.add(piv);
+  const lid = new THREE.Mesh(GEO.lid, glassMat); lid.position.x = CW / 2; piv.add(lid);
+  const frame = new THREE.Mesh(frameGeo, frameMat); frame.position.x = CW / 2; piv.add(frame);
+  const lm = new THREE.MeshStandardMaterial({ map: a.tex || coverTex(a), roughness: 0.4, envMapIntensity: 0.5 });
+  const art = new THREE.Mesh(GEO.inlay, lm); art.position.set(CW / 2 + INX, 0, -0.0045); piv.add(art);
+  const inside = new THREE.Mesh(GEO.inlay, pm); inside.position.set(CW / 2 + INX, 0, -0.005); inside.rotation.y = Math.PI; piv.add(inside);
+  a.lm = lm; a.dm = dm; a.bm = bm; a.tm = tm; a.pm = pm; u.piv = piv; u.disc = disc; u.full = true;
+  mark3(g);
+  if (a.cover && !a.tex) applyCover(a);
+}
+function disposeCase(g) {
+  const u = g.userData, a = u.album; a.on = false;
+  if (a.spine) { a.spine.dispose(); a.spine = null; } if (a.spMat) { a.spMat.dispose(); a.spMat = null; }
+  if (u.full) {
+    loRes(a);
+    for (const m of [a.lm, a.dm, a.bm, a.tm, a.pm]) if (m) m.dispose();
+    a.lm = a.dm = a.bm = a.tm = a.pm = null;
+  }
+  if (a.tex) { a.tex.dispose(); a.tex = null; }
+}
+function unmountRow(r) {
+  const rec = rowMap.get(r); if (!rec) return;
+  for (const g of rec.cases) { group.remove(g); disposeCase(g); if (hover === g) hover = null; if (hoverReady === g) hoverReady = null; }
+  cases = cases.filter(c => c.userData.row !== r); rowMap.delete(r);
+}
+function clearGroup() {
+  if (!group) return;
+  for (const r of [...rowMap.keys()]) unmountRow(r);
+  rowMap.clear(); mountQ = []; cases = [];
+  scene.remove(group); if (wallGeo) { wallGeo.dispose(); wallGeo = null; }
+  group = null;
+}
+function syncRows() {
+  if (!group) return;
+  const c = -camY / ROWH, m = camZ * 0.4142 / ROWH + 0.9, r0 = Math.max(0, Math.floor(c - m)), r1 = Math.min(rows - 1, Math.ceil(c + m));
+  for (const [r] of rowMap) if ((r < r0 - 1 || r > r1 + 1) && !(open && open.userData.row === r)) unmountRow(r);
+  let added = false;
+  for (let r = r0; r <= r1; r++) if (!rowMap.has(r)) { rowMap.set(r, { next: 0, cases: [] }); mountQ.push(r); added = true; }
+  if (added) mountQ.sort((a, b) => Math.abs(a - c) - Math.abs(b - c));
+}
+function pumpMount(budget) {   // create a few cases per frame so scrolling never stalls
+  const t0 = performance.now();
+  while (mountQ.length && performance.now() - t0 < budget) {
+    const r = mountQ[0], rec = rowMap.get(r), i = r * COLS + (rec ? rec.next : 0);
+    if (!rec || rec.next >= COLS || i >= LIST.length) { mountQ.shift(); continue; }
+    const g = makeLite(LIST[i], i, t0); rec.cases.push(g); cases.push(g); group.add(g); rec.next++;
+  }
+}
+// ---- the 3D "Open CD" logo above the shelf: letters built from stacked layers (so they have real depth as the camera and the logo sway) next to a coin-flipping disc ----
+let logoG = null, logoDisc = null, logoTex = null, logoCv = null, haloTex = null, haloCv = null, logoSpan = 2;
+const LOGO_W = 1.7, LOGO_H = LOGO_W * 256 / 1024;
+function paintLogo() {                          // (re)draws the lettering in the current theme colour
+  if (!logoCv) return;
+  const c = logoCv, x = c.getContext('2d'), a = ACC[S.acc] || ACC.amber, fam = '"Segoe UI Black","Segoe UI","Helvetica Neue",Arial,sans-serif';
+  x.clearRect(0, 0, c.width, c.height); x.textAlign = 'left'; x.textBaseline = 'alphabetic';
+  let fs = 200; x.font = `800 ${fs}px ${fam}`;
+  const tot = x.measureText('Open').width + fs * 0.26 + x.measureText('CD').width; fs *= Math.min(1, (c.width - 70) / tot); x.font = `800 ${fs}px ${fam}`;
+  const w1 = x.measureText('Open').width, gap = fs * 0.26, w2 = x.measureText('CD').width, x0 = (c.width - (w1 + gap + w2)) / 2, base = c.height / 2 + fs * 0.36;
+  const g1 = x.createLinearGradient(0, base - fs * 0.75, 0, base); g1.addColorStop(0, '#fffaf2'); g1.addColorStop(1, '#d9c5ab');
+  const g2 = x.createLinearGradient(0, base - fs * 0.75, 0, base); g2.addColorStop(0, a[1]); g2.addColorStop(1, a[2]);
+  x.fillStyle = g1; x.fillText('Open', x0, base); x.fillStyle = g2; x.fillText('CD', x0 + w1 + gap, base);
+  if (logoTex) logoTex.needsUpdate = true;
+  if (haloCv) {                                 // soft glow behind the letters
+    const h = haloCv.getContext('2d'), r = haloCv.width / 2, gr = h.createRadialGradient(r, r, 0, r, r, r);
+    gr.addColorStop(0, `rgba(${a[3]},0.55)`); gr.addColorStop(0.5, `rgba(${a[3]},0.16)`); gr.addColorStop(1, `rgba(${a[3]},0)`);
+    h.clearRect(0, 0, haloCv.width, haloCv.height); h.fillStyle = gr; h.fillRect(0, 0, haloCv.width, haloCv.height); if (haloTex) haloTex.needsUpdate = true;
+  }
+  kick();
+}
+function makeLogo() {
+  logoCv = document.createElement('canvas'); logoCv.width = 1024; logoCv.height = 256; logoTex = tex(logoCv); logoTex.anisotropy = 8;
+  haloCv = document.createElement('canvas'); haloCv.width = haloCv.height = 128; haloTex = tex(haloCv);
+  logoG = new THREE.Group();
+  const tg = new THREE.Group(), geo = new THREE.PlaneGeometry(LOGO_W, LOGO_H), N = 16, step = 0.0048;
+  for (let i = N - 1; i >= 0; i--) {            // the same lettering stacked behind itself: a bright face, ever darker sides
+    const sh = i === 0 ? 1 : 0.6 - 0.38 * (i / N), m = new THREE.MeshBasicMaterial({ map: logoTex, alphaTest: 0.35, color: new THREE.Color(sh, sh, sh), toneMapped: false });
+    const l = new THREE.Mesh(geo, m); l.position.z = -i * step; tg.add(l);
+  }
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.8, toneMapped: false }));
+  halo.scale.set(LOGO_W * 1.8, LOGO_H * 3.4, 1); halo.position.z = -0.3; tg.add(halo);
+  const R = LOGO_H * 0.6, shape = new THREE.Shape(), hole = new THREE.Path();
+  shape.absarc(0, 0, R, 0, Math.PI * 2, false); hole.absarc(0, 0, R * 0.2, 0, Math.PI * 2, true); shape.holes.push(hole);
+  const eg = new THREE.ExtrudeGeometry(shape, { depth: R * 0.1, bevelEnabled: true, bevelThickness: R * 0.02, bevelSize: R * 0.02, bevelSegments: 2, curveSegments: 56 }); eg.translate(0, 0, -R * 0.05);
+  const body = new THREE.Mesh(eg, new THREE.MeshStandardMaterial({ color: 0xe9ecf2, metalness: 0.35, roughness: 0.32, emissive: 0x2a2c33 }));
+  const rg = new THREE.RingGeometry(R * 0.3, R * 0.97, 64, 1), pos = rg.attributes.position, col = new Float32Array(pos.count * 3), cc = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) { const h = ((Math.atan2(pos.getY(i), pos.getX(i)) / Math.PI) % 1 + 1) % 1; cc.setHSL(h, 0.85, 0.62); col[i * 3] = cc.r; col[i * 3 + 1] = cc.g; col[i * 3 + 2] = cc.b; }   // a rainbow sheen, twice round
+  rg.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const rm = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+  const fz = R * 0.07 + 0.002, f1 = new THREE.Mesh(rg, rm), f2 = new THREE.Mesh(rg, rm); f1.position.z = fz; f2.position.z = -fz;
+  logoDisc = new THREE.Group(); logoDisc.add(body, f1, f2);
+  logoSpan = 2 * R + 0.14 + LOGO_W; logoDisc.position.x = -logoSpan / 2 + R; tg.position.x = -logoSpan / 2 + 2 * R + 0.14 + LOGO_W / 2;
+  logoG.add(tg, logoDisc); paintLogo();
+}
+function effPer() {                            // auto: as many cases per row as fit the window at the normal camera distance; a number is used as-is (the camera pulls back to fit)
+  if (typeof S.per === 'number') return S.per;
+  const w = 2 * 5.2 * Math.tan(Math.PI / 8) * cam.aspect * 0.84;   // 0.84: the shelf's front edge is nearer the camera than its back wall
+  return Math.max(8, Math.min(120, Math.floor((w - 0.8) / P)));
+}
+function reflow() { const np = effPer(); targetY = -Math.floor(Math.round(-targetY / ROWH) * COLS / np) * ROWH; refresh(true); }
+function build(list, keep) {
+  clearGroup(); LIST = list; ROWH = 1.7;
+  COLS = effPer(); rows = Math.max(1, Math.ceil(list.length / COLS));
+  const st = STYLES[S.style] || STYLES.walnut, M = shelfMats(S.style); fitCam();
+  scene.fog = null;
+  if (M.board.map) M.board.map.repeat.set(1, 1);
+  group = new THREE.Group();
+  const sw = COLS * P + 0.4, dp = CW + 0.2, hRows = (rows - 1) * ROWH, th = hRows + 1.47, cy = (0.1 - hRows) / 2;
+  const box = (w, h, d, x, y, z, m, shadow) => { const b = new THREE.Mesh(BOXG, m); b.scale.set(w, h, d); b.position.set(x, y, z); b.castShadow = shadow && !M.clear; b.receiveShadow = !M.clear; group.add(b); };
+  for (let r = 0; r < rows; r++) box(sw, 0.06, dp, 0, -r * ROWH - CH / 2 - 0.03, 0, M.board, true);
+  box(sw + 0.2, 0.06, dp, 0, CH / 2 + 0.13, 0, M.board, false);
+  box(0.1, th, dp, -(sw / 2 + 0.05), cy, 0, M.side, false); box(0.1, th, dp, sw / 2 + 0.05, cy, 0, M.side, false);
+  if (st.glow) {   // LED strip under every board
+    glowMat = glowMat || new THREE.MeshBasicMaterial({ color: st.glow });
+    for (let r = 0; r < rows; r++) box(sw * 0.98, 0.012, 0.025, 0, -r * ROWH - CH / 2 - 0.066, dp / 2 - 0.03, glowMat, false);
+    box(sw * 0.98, 0.012, 0.025, 0, CH / 2 + 0.096, dp / 2 - 0.03, glowMat, false);
+  }
+  if (!M.clear) {
+    M.wt.repeat.set(M.wide ? sw / 2.4 : 1, Math.max(1, th / 2.4));
+    wallGeo = new THREE.PlaneGeometry(sw, th);
+    const bk = new THREE.Mesh(wallGeo, M.wall); bk.position.set(0, cy, -dp / 2 + 0.005); bk.receiveShadow = true; group.add(bk);
+  }
+  Object.assign(sun.shadow.camera, { left: -(sw / 2 + 0.6), right: sw / 2 + 0.6 }); sun.shadow.camera.updateProjectionMatrix();
+  scene.add(group);
+  if (!logoG) makeLogo();
+  group.add(logoG); logoG.position.set(0, 1.27, 0.12); logoG.scale.setScalar(Math.min(1, sw * 0.85 / logoSpan)); logoG.visible = S.logo !== false;
+  targetY = camY = keep ? Math.min(0, Math.max(-(rows - 1) * ROWH, targetY)) : 0;
+  introStart = performance.now(); introUntil = quietBuild ? 0 : introStart + 2200; quietBuild = false;
+  syncRows(); pumpMount(30);
+}
+
+// tween
+const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+const tw = (o, to, ms) => new Promise(r => {
+  const from = {}; for (const k in to) from[k] = o[k];
+  const t0 = performance.now();
+  (function s(n) {
+    const t = Math.min(1, (n - t0) / ms), e = ease(t);
+    for (const k in to) o[k] = from[k] + (to[k] - from[k]) * e;
+    t < 1 ? requestAnimationFrame(s) : r();
+  })(t0);
+});
+
+
+// audio + panel
+// ---- two audio elements so one song can fade out while the next fades in. `au` always means the one that is playing the current song ----
+const AE = [$('au'), new Audio()]; AE.forEach(e => { e.crossOrigin = 'anonymous'; e.preload = 'auto'; });
+let curEl = AE[0];
+const auH = {}, auL = [];
+const isOn = k => typeof k === 'string' && /^on[a-z]+$/.test(k);
+const au = new Proxy({}, {
+  get(_, k) {
+    if (k === 'addEventListener') return (type, fn, o) => { for (const el of AE) { const w = e => { if (el === curEl) fn.call(au, e); }; auL.push({ type, fn, el, w }); el.addEventListener(type, w, o); } };
+    if (k === 'removeEventListener') return (type, fn, o) => { for (let i = auL.length - 1; i >= 0; i--) { const l = auL[i]; if (l.type === type && l.fn === fn) { l.el.removeEventListener(type, l.w, o); auL.splice(i, 1); } } };
+    if (isOn(k)) return auH[k] || null;
+    const v = curEl[k]; return typeof v === 'function' ? v.bind(curEl) : v;
+  },
+  set(_, k, v) {
+    if (isOn(k)) { auH[k] = v; for (const el of AE) el[k] = v ? e => { if (el === curEl) v.call(au, e); } : null; return true; }   // the song that is fading out never fires the player's events
+    curEl[k] = v; return true;
+  }
+});
+let tracks = [], idx = 0, errStreak = 0;
+let pAlbum = null, pCase = null, miniOn = false;   // the album that is playing, its case on the shelf, and whether the mini player is showing
+const audioUrl = p => 'shelf://a/?p=' + encodeURIComponent(p);   // served by the main process with CORS, so the equalizer is allowed to process it
+function mark() { [...$('tl').children].forEach((d, i) => d.classList.toggle('on', i === idx)); const r = $('tl').children[idx]; if (r) r.scrollIntoView({ block: 'nearest' }); }
+let bag = [], hist = [], sleepEnd = false, metaFor = null;          // shuffle: songs not yet played / songs played so far (for Previous)
+const refillBag = except => { bag = tracks.map((_, i) => i).filter(i => i !== except); };
+function playTrack(i, back, auto) {
+  if (i < 0 || i >= tracks.length) return;
+  if (!back && idx >= 0 && idx !== i) { hist.push(idx); if (hist.length > 200) hist.shift(); }
+  bag = bag.filter(x => x !== i);
+  const xs = xfLen(auto), fading = xs > 0 && au.src && !au.paused && !au.ended && isFinite(au.duration) && au.currentTime > 0.5;   // something is playing: blend into the next song
+  idx = i; metaFor = null; loadLyrics(tracks[i]);
+  if (fading) crossTo(i, Math.min(xs, Math.max(0.6, au.duration - au.currentTime))); else { xfEnd(); au.src = audioUrl(tracks[i].p); }
+  if (S.eqOn || S.viz) eqApply(); au.play().catch(() => {}); mark(); paintNow(); trackFmt(tracks[i]);
+  if ('mediaSession' in navigator && pAlbum) navigator.mediaSession.metadata = new MediaMetadata({ title: tracks[i].t, artist: pAlbum.artist, album: pAlbum.title });
+}
+let xf = null;                                  // the fade in progress
+const baseVol = () => S.muted ? 0 : S.vol;
+const xfLen = auto => { const f = +S.xfade || 0; return auto ? f : Math.min(f, 2.5); };   // skipping by hand blends more briefly
+function xfEnd() {                              // finish (or cut) the fade: the old element goes quiet and is released
+  if (!xf) return; clearInterval(xf.timer); const out = xf.out; xf = null;
+  out.pause(); out.removeAttribute('src'); out.load(); curEl.volume = baseVol();
+}
+function crossTo(i, secs) {                     // the next song starts on the other element while the old one fades out underneath
+  xfEnd();
+  const out = curEl, inc = out === AE[0] ? AE[1] : AE[0];
+  inc.volume = 0; inc.src = audioUrl(tracks[i].p); curEl = inc;
+  const t0 = Date.now(), ms = secs * 1000;
+  xf = { out, timer: setInterval(() => {
+    if (curEl.paused) return xfEnd();            // paused (or stopped) mid-fade: don't leave the old song playing
+    const p = Math.min(1, (Date.now() - t0) / ms), b = baseVol();
+    out.volume = b * Math.cos(p * Math.PI / 2); inc.volume = b * Math.sin(p * Math.PI / 2);   // equal-power curves: no dip in loudness in the middle
+    if (p >= 1) xfEnd();
+  }, 50) };
+}
+function hasNext() { return S.shuf ? (bag.length > 0 || S.rep === 'all') : (idx + 1 < tracks.length || S.rep === 'all'); }
+function paintNow() {                         // panel header: the song that is playing, under its album
+  const t = tracks[idx], el = $('np');
+  if (!t) { el.textContent = ''; return; }
+  el.textContent = '\u266a ' + t.t; el.title = 'Now playing: ' + t.t;
+  const a = pAlbum; if (!a) return;
+  $('mins').textContent = t.t; $('mina').textContent = showArtist(a) ? a.title + ' \u00b7 ' + a.artist : a.title;
+  const art = a._disc || a.cover; $('minic').firstChild.style.backgroundImage = art ? `url("${art}")` : '';
+}
+// ---- file format of a song ("FLAC 16-bit 44.1 kHz"), read from the first bytes of the file ----
+const FMTC = new Map();
+const hz = n => parseFloat((n / 1000).toFixed(2)) + ' kHz';
+const tag4 = (b, i) => String.fromCharCode(b[i], b[i + 1], b[i + 2], b[i + 3]);
+const be32 = (b, i) => ((b[i] << 24) | (b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3]) >>> 0, be16 = (b, i) => (b[i] << 8) | b[i + 1];
+const le32 = (b, i) => (b[i] | (b[i + 1] << 8) | (b[i + 2] << 16) | (b[i + 3] << 24)) >>> 0, le16 = (b, i) => b[i] | (b[i + 1] << 8);
+function find4(b, tag, from = 0) { const c = [...tag].map(ch => ch.charCodeAt(0)); for (let i = from; i + 3 < b.length; i++) if (b[i] === c[0] && b[i + 1] === c[1] && b[i + 2] === c[2] && b[i + 3] === c[3]) return i; return -1; }
+async function grab(p, start, len) {
+  const r = await fetch(audioUrl(p), { headers: { Range: start < 0 ? 'bytes=' + start : `bytes=${start}-${start + len - 1}` } });
+  const total = +(r.headers.get('Content-Range') || '').split('/')[1] || +r.headers.get('Content-Length') || 0;
+  return { b: new Uint8Array(await r.arrayBuffer()), total };
+}
+function probeMp3(d, bytes) {
+  let i = 0; const lim = Math.min(d.length - 4, 8192);
+  for (; i < lim; i++) if (d[i] === 0xFF && (d[i + 1] & 0xE0) === 0xE0) { const v = (d[i + 1] >> 3) & 3, l = (d[i + 1] >> 1) & 3, bi = d[i + 2] >> 4, si = (d[i + 2] >> 2) & 3; if (v !== 1 && l !== 0 && bi !== 0 && bi !== 15 && si !== 3) break; }
+  if (i >= lim) return null;
+  const v = (d[i + 1] >> 3) & 3, l = (d[i + 1] >> 1) & 3, bi = d[i + 2] >> 4, si = (d[i + 2] >> 2) & 3, mono = (d[i + 3] >> 6) === 3;
+  if (l !== 1) return l === 3 ? 'MP1' : 'MP2';
+  const sr = [[11025, 12000, 8000], null, [22050, 24000, 16000], [44100, 48000, 32000]][v][si];
+  const kb = (v === 3 ? [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320] : [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160])[bi], side = v === 3 ? (mono ? 17 : 32) : (mono ? 9 : 17);
+  const win = d.subarray(i, i + 4 + side + 12); let xi = find4(win, 'Xing'); const vbr = xi >= 0; if (!vbr) xi = find4(win, 'Info');
+  if (vbr) {
+    xi += i; const fl = be32(d, xi + 4);
+    if (fl & 1) { const frames = be32(d, xi + 8), secs = frames * (v === 3 ? 1152 : 576) / sr, by = fl & 2 ? be32(d, xi + 12) : bytes; if (secs > 0 && by > 0) return `MP3 VBR ~${Math.round(by * 8 / secs / 1000)} kbps ${hz(sr)}`; }
+    return `MP3 VBR ${hz(sr)}`;
+  }
+  return `MP3 ${kb} kbps ${hz(sr)}`;
+}
+async function probeMp4(p, b, total) {
+  let hay = b, i = find4(hay, 'stsd');
+  if (i < 0 && total > b.length) { hay = (await grab(p, -262144, 0)).b; i = find4(hay, 'stsd'); }   // moov at the end of the file
+  if (i < 0) return null;
+  const e = i + 12, ty = tag4(hay, e + 4);
+  if (ty === 'alac') { const j = find4(hay, 'alac', e + 8); return j > 0 ? `ALAC ${hay[j + 13]}-bit ${hz(be32(hay, j + 28))}` : 'ALAC'; }
+  if (ty === 'mp4a') return `AAC ${hz(be16(hay, e + 32))}`;
+  return null;
+}
+async function probe(p) {
+  const first = await grab(p, 0, 65536); let b = first.b, d = b, skip = 0;
+  if (b.length < 32) return null;
+  if (tag4(b, 4) === 'ftyp') return probeMp4(p, b, first.total);
+  if (tag4(b, 0).startsWith('ID3')) {           // a tag in front of the audio: jump past it
+    skip = 10 + (((b[6] & 127) << 21) | ((b[7] & 127) << 14) | ((b[8] & 127) << 7) | (b[9] & 127)) + (b[5] & 16 ? 10 : 0);
+    d = skip + 4096 <= b.length ? b.subarray(skip) : (await grab(p, skip, 32768)).b;
+  }
+  const t0 = tag4(d, 0);
+  if (t0 === 'fLaC') return `FLAC ${(((d[20] & 1) << 4) | (d[21] >> 4)) + 1}-bit ${hz((d[18] << 12) | (d[19] << 4) | (d[20] >> 4))}`;
+  if (t0 === 'RIFF' && tag4(d, 8) === 'WAVE') {
+    for (let i = 12; i + 8 < d.length;) { const id = tag4(d, i), sz = le32(d, i + 4); if (id === 'fmt ') return `WAV ${le16(d, i + 22)}-bit${le16(d, i + 8) === 3 ? ' float' : ''} ${hz(le32(d, i + 12))}`; i += 8 + sz + (sz & 1); }
+    return 'WAV';
+  }
+  if (t0 === 'OggS') {
+    const o = 27 + d[26];
+    if (tag4(d, o + 1) === 'vorb') { const nom = le32(d, o + 20) | 0; return `Vorbis${nom > 0 ? ' ' + Math.round(nom / 1000) + ' kbps' : ''} ${hz(le32(d, o + 12))}`; }
+    return tag4(d, o) === 'Opus' ? 'Opus 48 kHz' : 'OGG';
+  }
+  return probeMp3(d, first.total - skip);
+}
+function audioInfo(p) {
+  if (!FMTC.has(p)) FMTC.set(p, null);          // (null while it is being read)
+  return probe(p).catch(() => null).then(f => { const ext = (p.match(/\.([^.\\/]+)$/) || [])[1]; f = f || (ext ? ext.toUpperCase() : null); FMTC.set(p, f); return f; });
+}
+const FMTBUSY = new Set();
+function paintMeta() {                          // year · tracks · file format
+  const a = open ? open.userData.album : pAlbum, t = tracks[idx]; if (!a) return;
+  const parts = [a.year || '', a.tracks.length + (a.tracks.length === 1 ? ' track' : ' tracks'), t && FMTC.get(t.p)].filter(Boolean), m = $('meta'); m.textContent = '';
+  parts.forEach((x, i) => { if (i) m.append(' \u00b7 '); const sp = document.createElement('span'); sp.textContent = x; m.append(sp); });   // wraps between the parts, never inside one
+}
+function trackFmt(t) {
+  if (!t) return; if (FMTC.get(t.p)) return paintMeta();
+  paintMeta(); if (FMTBUSY.has(t.p)) return; FMTBUSY.add(t.p);
+  audioInfo(t.p).then(() => { FMTBUSY.delete(t.p); if (tracks[idx] === t) paintMeta(); });
+}
+function startAlbum() { hist = []; idx = -1; refillBag(-1); playTrack(S.shuf ? bag[Math.random() * bag.length | 0] : 0); }
+function restartSong() { au.currentTime = 0; au.play().catch(() => {}); }
+function nextTrack(auto) {
+  if (!tracks.length) return;
+  if (auto && S.rep === 'one') return restartSong();
+  if (S.shuf) {
+    if (!bag.length) { if (auto && S.rep !== 'all') return; refillBag(idx); }
+    return bag.length ? playTrack(bag[Math.random() * bag.length | 0], false, auto) : restartSong();
+  }
+  if (idx + 1 < tracks.length) return playTrack(idx + 1, false, auto);
+  if (S.rep === 'all') return playTrack(0, false, auto);
+  if (!auto) restartSong();
+}
+function prevTrack() {
+  if (S.prevRestart && au.currentTime > 3) return restartSong();
+  if (S.shuf) return hist.length ? playTrack(hist.pop(), true) : restartSong();
+  return idx > 0 ? playTrack(idx - 1, true) : restartSong();
+}
+const seekBy = d => { if (au.duration) au.currentTime = Math.min(au.duration - 0.1, Math.max(0, au.currentTime + d)); };
+au.addEventListener('loadedmetadata', () => { metaFor = tracks[idx]; });
+au.onended = () => { if (sleepEnd) { setSleep('off'); return; } nextTrack(true); };
+au.addEventListener('timeupdate', () => {      // close to the end of a song: start the next one now so they overlap
+  const f = +S.xfade || 0; if (!f || xf || sleepEnd || S.rep === 'one' || !au.duration || au.paused) return;
+  const left = au.duration - au.currentTime;
+  if (left > f + 0.05 || left < 0.3 || au.duration < f * 2 + 4 || !hasNext()) return;
+  nextTrack(true);
+});
+au.onplaying = () => errStreak = 0;
+au.onerror = () => { $('st').textContent = 'Can\u2019t play ' + (tracks[idx] ? tracks[idx].t : 'that file') + ' (moved or deleted?)'; if (errStreak++ < 3) playTrack(idx + 1); };
+$('next').onclick = () => nextTrack(false);
+$('prev').onclick = prevTrack;
+if ('mediaSession' in navigator) for (const [a, f] of [['play', () => au.play()], ['pause', () => au.pause()], ['nexttrack', () => nextTrack(false)], ['previoustrack', prevTrack]]) try { navigator.mediaSession.setActionHandler(a, f); } catch {}
+const songQuery = t => { const al = open ? open.userData.album : null, ar = al && !/^(various artists|unknown artist)$/i.test(al.artist) ? al.artist : ''; return [t.t, ar].filter(Boolean).join(' '); };
+const GH = 'https://github.com/txkex/Open-CD';
+async function openLink(svc, q, url) {   // the app bridge first (it can use the Spotify app); if that is missing or fails, ask for the plain browser link
+  let ok = false;
+  try { if (api.openWeb) ok = await api.openWeb(svc, q); else if (svc === 'spotify' && api.spotify) ok = await api.spotify(q); } catch {}
+  if (!ok) window.open(url, '_blank');
+}
+function webOpen(svc, t) {
+  const q = songQuery(t);
+  openLink(svc, q, svc === 'youtube' ? 'https://music.youtube.com/search?q=' + encodeURIComponent(q) : 'https://open.spotify.com/search/' + encodeURIComponent(q));
+}
+// song menu: right-click a song, or use the ⋯ button on its row
+const ctx = $('ctx'); let ctxRow = null, ctxHid = null;
+const mi = d => `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const MI = {
+  play: mi('<path d="M8 5v14l11-7z"/>'), spotify: mi('<circle cx="12" cy="12" r="9"/><path d="M7.5 9.6c3.2-1 6.8-.7 9.3 1M8 12.8c2.6-.8 5.4-.5 7.6.8M8.6 15.8c2-.5 4-.3 5.7.7"/>'),
+  youtube: mi('<rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M10.5 9.6v4.8l4-2.4z"/>'), copy: mi('<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>')
+};
+function hideCtx() { if (ctx.classList.contains('show')) ctxHid = { k: ctx.dataset.k || '', t: Date.now() }; ctx.classList.remove('show'); if (ctxRow) { ctxRow.classList.remove('mx'); ctxRow = null; } }
+function showCtx(x, y, t, i, row) {
+  hideCtx(); ctx.dataset.k = ''; ctxRow = row || null; if (row) row.classList.add('mx');
+  ctx.innerHTML = ''; const hd = document.createElement('div'); hd.className = 'hd'; hd.textContent = t.t; ctx.appendChild(hd);
+  const add = (icon, label, fn) => { const b = document.createElement('button'); b.setAttribute('role', 'menuitem'); b.innerHTML = MI[icon] + '<span></span>'; b.lastChild.textContent = label; b.onclick = () => { hideCtx(); fn(); }; ctx.appendChild(b); };
+  add('play', 'Play now', () => playTrack(i));
+  ctx.appendChild(document.createElement('hr'));
+  add('spotify', 'Open in Spotify', () => webOpen('spotify', t));
+  add('youtube', 'Open in YouTube Music', () => webOpen('youtube', t));
+  ctx.appendChild(document.createElement('hr'));
+  add('copy', 'Copy song name', () => { try { navigator.clipboard.writeText(songQuery(t)); } catch {} });
+  ctx.classList.add('show');
+  const w = ctx.offsetWidth, h = ctx.offsetHeight;
+  ctx.style.left = Math.max(8, Math.min(x, innerWidth - w - 8)) + 'px'; ctx.style.top = Math.max(8, Math.min(y, innerHeight - h - 8)) + 'px';
+  ctx.querySelector('button').focus();
+}
+ctx.addEventListener('keydown', e => {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  e.preventDefault(); const bs = [...ctx.querySelectorAll('button')], k = bs.indexOf(document.activeElement);
+  bs[(k + (e.key === 'ArrowDown' ? 1 : bs.length - 1)) % bs.length].focus();
+});
+addEventListener('pointerdown', e => { if (!ctx.contains(e.target)) hideCtx(); }, true);
+addEventListener('blur', hideCtx); addEventListener('resize', hideCtx); addEventListener('wheel', hideCtx, { passive: true });
+function fill() {
+  const tl = $('tl'); tl.innerHTML = '';
+  const frag = document.createDocumentFragment();
+  tracks.forEach((t, i) => {
+    const d = document.createElement('div'); d.className = 'tr';
+    d.innerHTML = '<span class="no"></span><span class="nm"></span><span class="eq"><b></b><b></b><b></b></span><button class="mo" aria-label="More options" title="More options"></button>';
+    d.children[0].textContent = t.n || i + 1; d.children[1].textContent = t.t; d.title = 'Click: play \u00b7 Right-click or \u22ef: more options';
+    const mo = d.children[3]; mo.innerHTML = mi('<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>');
+    mo.onclick = e => { e.stopPropagation(); const r = mo.getBoundingClientRect(); showCtx(r.left, r.bottom + 4, t, i, d); };
+    d.onclick = () => playTrack(i);
+    d.oncontextmenu = e => { e.preventDefault(); showCtx(e.clientX, e.clientY, t, i, d); };
+    frag.appendChild(d);
+  });
+  tl.appendChild(frag);
+}
+const svg = d => `<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="${d}"/></svg>`;
+const IC = { play: svg('M8 5v14l11-7z'), pause: svg('M6 5h4v14H6zM14 5h4v14h-4z'), prev: svg('M6 6h2v12H6zM9.5 12 18 6v12z'), next: svg('M16 6h2v12h-2zM6 18V6l8.5 6z') };
+IC.vol = svg('M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02z'); IC.vol0 = svg('M3 9v6h4l5 5V4L7 9H3zm13.6 3 2.7-2.7-1.4-1.4-2.7 2.7-2.7-2.7-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4z'); IC.vol2 = svg('M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z');
+$('prev').innerHTML = IC.prev; $('next').innerHTML = IC.next; $('play').innerHTML = IC.play;
+$('mprev').innerHTML = IC.prev; $('mnext').innerHTML = IC.next; $('mplay').innerHTML = IC.play;
+$('mexp').innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 15l6-6 6 6"/></svg>';
+$('mx').innerHTML = $('close').innerHTML;
+IC.shuf = svg('M10.59 9.17 5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z');
+IC.rep = svg('M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z');
+IC.rep1 = svg('M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4zm-4-2V9h-1l-2 1v1h1.5v4H13z');
+IC.moon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+$('shuf').innerHTML = IC.shuf; $('sleep').innerHTML = IC.moon + '<span></span>';
+function syncModes() {
+  const sh = $('shuf'), rp = $('rep');
+  sh.classList.toggle('on', !!S.shuf); sh.setAttribute('aria-pressed', !!S.shuf); sh.title = 'Shuffle: ' + (S.shuf ? 'on' : 'off') + '  (S)';
+  rp.innerHTML = S.rep === 'one' ? IC.rep1 : IC.rep; rp.classList.toggle('on', S.rep !== 'off'); rp.setAttribute('aria-pressed', S.rep !== 'off');
+  rp.title = 'Repeat: ' + ({ off: 'off', all: 'album', one: 'song' }[S.rep] || 'off') + '  (R)';
+}
+const cycleRep = () => setOpt('rep', { off: 'all', all: 'one', one: 'off' }[S.rep] || 'all');
+$('shuf').onclick = () => setOpt('shuf', !S.shuf); $('rep').onclick = cycleRep;
+const SLEEP = ['off', 15, 30, 60, 'end']; let sleepI = 0, sleepAt = 0, sleepT = null, sleepTick = null;
+function paintSleep() {
+  const b = $('sleep'), on = sleepI > 0;
+  b.classList.toggle('on', on);
+  b.lastChild.textContent = !on ? '' : sleepEnd ? 'Song' : Math.max(1, Math.ceil((sleepAt - Date.now()) / 60000)) + 'm';
+  b.title = !on ? 'Sleep timer: off. Click to set 15, 30 or 60 minutes, or the end of this song' : sleepEnd ? 'Sleep timer: stops after this song. Click to change' : 'Sleep timer: fades out and stops in about ' + Math.max(1, Math.ceil((sleepAt - Date.now()) / 60000)) + ' min. Click to change';
+}
+function sleepFade() {
+  const v0 = au.volume, t0 = Date.now();
+  const f = setInterval(() => {
+    const p = Math.min(1, (Date.now() - t0) / 4000); au.volume = v0 * (1 - p);
+    if (p >= 1) { clearInterval(f); au.pause(); applyVol(); setSleep('off'); }
+  }, 100);
+}
+function setSleep(m) {
+  clearTimeout(sleepT); clearInterval(sleepTick); sleepT = sleepTick = null; sleepAt = 0; sleepEnd = m === 'end'; sleepI = Math.max(0, SLEEP.indexOf(m));
+  if (typeof m === 'number') { sleepAt = Date.now() + m * 60000; sleepT = setTimeout(sleepFade, m * 60000); sleepTick = setInterval(paintSleep, 15000); }
+  paintSleep();
+}
+$('sleep').onclick = () => setSleep(SLEEP[(sleepI + 1) % SLEEP.length]);
+$('volrow').addEventListener('wheel', e => { e.preventDefault(); S.vol = Math.min(1, Math.max(0, S.vol + (e.deltaY < 0 ? 0.05 : -0.05))); S.muted = false; applyVol(); saveSet(); }, { passive: false });
+$('dur').onclick = () => setOpt('rem', !S.rem);
+const fmt = t => isFinite(t) ? Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0') : '0:00';
+let seeking = false;
+const paintSeek = () => $('seek').style.setProperty('--p', $('seek').value / 10 + '%');
+au.ontimeupdate = () => {
+  $('cur').textContent = fmt(au.currentTime); $('dur').textContent = S.rem && au.duration ? '\u2212' + fmt(au.duration - au.currentTime) : fmt(au.duration);
+  if (!seeking) { $('seek').value = au.duration ? au.currentTime / au.duration * 1000 : 0; paintSeek(); }
+};
+$('seek').onpointerdown = () => seeking = true;
+addEventListener('pointerup', () => seeking = false);
+$('seek').oninput = () => { paintSeek(); if (au.duration) au.currentTime = $('seek').value / 1000 * au.duration; };
+function applyVol() {
+  const v = S.muted ? 0 : S.vol; au.volume = v; $('vol').value = Math.round(v * 100); $('vol').style.setProperty('--v', $('vol').value + '%');
+  $('mute').innerHTML = v === 0 ? IC.vol0 : v < 0.5 ? IC.vol : IC.vol2; $('mute').title = S.muted ? 'Unmute' : 'Mute';
+}
+$('vol').oninput = () => { S.vol = $('vol').value / 100; S.muted = false; applyVol(); saveSet(); };
+$('mute').onclick = () => { S.muted = !S.muted; applyVol(); saveSet(); };
+const syncPlay = () => { $('play').innerHTML = $('mplay').innerHTML = au.paused ? IC.play : IC.pause; document.body.classList.toggle('playing', !au.paused); };
+au.onplay = au.onpause = syncPlay;
+au.addEventListener('play', () => eqResume());
+$('play').onclick = () => { if (!au.src) startAlbum(); else au.paused ? au.play() : au.pause(); };
+
+// open / close
+let open = null, busy = false, hover = null, pendingRefresh = null;
+const OPEN_T = { classic: 1, snappy: 0.5, cine: 1.5 };
+function hideBehind(on) { if (group) for (const o of group.children) if (o !== open) o.visible = !on; }   // shelf, boards and every other case leave the scene while a CD is open
+function showMini() { miniOn = true; $('mini').classList.add('show'); }
+function hideMini() { miniOn = false; $('mini').classList.remove('show', 'landed'); }
+function discArt(a) {                         // the printed disc exactly as it looks in the case (official disc scan, cover print or generated label)
+  try {
+    const im = a.dm && a.dm.map && a.dm.map.image; if (!im || !(im.width || im.videoWidth)) return null;
+    const c = document.createElement('canvas'); c.width = c.height = 320; c.getContext('2d').drawImage(im, 0, 0, 320, 320);
+    return c.toDataURL('image/png');
+  } catch { return null; }
+}
+function miniWorld(z) {                       // where the mini player's cover sits, as a point on the plane at depth z
+  const r = $('minic').getBoundingClientRect(); cam.updateMatrixWorld();
+  const v = new THREE.Vector3(((r.left + r.width / 2) / innerWidth) * 2 - 1, -((r.top + r.height / 2) / innerHeight) * 2 + 1, 0.5).unproject(cam);
+  v.sub(cam.position).normalize(); return cam.position.clone().addScaledVector(v, (z - cam.position.z) / v.z);
+}
+function miniScale(z, w = CH) { return $('minic').getBoundingClientRect().height / (w * innerHeight / (2 * (cam.position.z - z) * Math.tan(Math.PI / 8))); }
+async function openCase(g) {
+  const cur = tracks[idx], a0 = g.userData.album, resume = !!(miniOn && pAlbum && cur && pAlbum.id === a0.id && a0.tracks.some(t => t.p === cur.p));   // same album as the mini player: keep the music going
+  busy = true; open = g; hover = null; hoverReady = null; g.userData.h = 0; g.userData.out = false; hideMini();
+  const u = g.userData, a = u.album, dm = OPEN_T[S.open] || 1; u.intro = null; g.visible = true; upgrade(g);
+  $('title').textContent = a.title; $('artist').textContent = a.artist;
+  $('meta').textContent = [a.year || '', a.tracks.length + (a.tracks.length === 1 ? ' track' : ' tracks')].filter(Boolean).join(' · ');
+  $('np').textContent = '';
+  $('pcover').style.backgroundImage = a.cover ? `url("${a.cover}")` : '';
+  document.body.classList.add('opened'); setLyrTint(a);
+  tracks = a.tracks; if (resume) idx = tracks.findIndex(t => t.p === cur.p); fill(); a.opened = true; setCover(a); hiRes(a); queueArt(a, true);
+  const zc = camZ - 3.0, oy = camY;
+  const hw = 3.0 * Math.tan(Math.PI / 8) * cam.aspect, ox = -hw * (350 / innerWidth) + 0.66, spinY = S.open === 'cine' ? -Math.PI * 2 : 0;
+  await tw(g.position, { z: zc - 0.8 }, 400 * dm);
+  await Promise.all([tw(g.position, { x: ox, y: oy, z: zc }, 800 * dm), tw(g.rotation, { y: spinY, x: 0 }, 800 * dm)]);
+  g.rotation.y = 0; hideBehind(true);
+  await tw(u.piv.rotation, { y: -Math.PI * 0.88 }, 700 * dm);
+  await tw(u.disc.position, { z: 0.55 }, 600 * dm);
+  $('panel').classList.add('show'); pAlbum = a; pCase = g; if (resume) { mark(); paintNow(); paintMeta(); loadLyrics(tracks[idx]); } else startAlbum(); busy = false;
+}
+async function closeCase() {
+  if (!open || busy) return;
+  exitFs();
+  busy = true; hideCtx(); au.pause(); pAlbum = pCase = null; setSleep('off'); $('panel').classList.remove('show'); $('lyr').classList.remove('show');
+  const g = open, u = g.userData, dm = OPEN_T[S.open] || 1, zc = camZ - 3.0;
+  const T = Math.PI / 2; g.rotation.y = T + ((g.rotation.y - T + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;   // dragged round? take the short way back
+  await tw(u.disc.position, { z: TZ + 0.003 }, 500 * dm);
+  await tw(u.piv.rotation, { y: 0 }, 600 * dm);
+  hideBehind(false);
+  await Promise.all([tw(g.position, { x: u.home.x, y: u.home.y, z: zc - 0.8 }, 800 * dm), tw(g.rotation, { y: T, x: 0 }, 800 * dm)]);
+  await tw(g.position, { z: 0 }, 300 * dm);
+  loRes(u.album); open = null; busy = false; document.body.classList.remove('opened'); clearLyrics();
+  if (pendingRefresh !== null) { const k = pendingRefresh; pendingRefresh = null; refresh(k); }
+}
+async function minimizeCase() {               // the disc lifts out and arcs up into the mini player; once it has cleared, the case closes and goes back on the shelf
+  if (!open || busy) return;
+  exitFs();
+  busy = true; hideCtx(); $('panel').classList.remove('show');
+  const g = open, u = g.userData, disc = u.disc, dm = OPEN_T[S.open] || 1, zc = camZ - 3.0, T = Math.PI / 2, dp = disc.parent;
+  u.album._disc = discArt(u.album); pAlbum = u.album; pCase = g; paintNow();
+  const p0 = disc.position.clone(), r0 = disc.rotation.clone(), s0 = disc.scale.clone();
+  scene.attach(disc);                         // the disc leaves the case, keeping its place on screen
+  const zt = disc.position.z, P0 = disc.position.clone(), P2 = miniWorld(zt), sc = miniScale(zt, 1.2), z0 = disc.rotation.z;
+  const C = new THREE.Vector3((P0.x + P2.x) / 2 - 0.25, (P0.y + P2.y) / 2 + 0.8, zt + 1.1);   // swings out towards the viewer, over everything
+  setTimeout(showMini, 450 * dm);
+  const flight = new Promise(r => {
+    const t0 = performance.now(), ms = 1150 * dm;
+    (function f(n) {
+      const t = Math.min(1, (n - t0) / ms), e = ease(t), w = 1 - e;
+      disc.position.set(w * w * P0.x + 2 * w * e * C.x + e * e * P2.x, w * w * P0.y + 2 * w * e * C.y + e * e * P2.y, w * w * P0.z + 2 * w * e * C.z + e * e * P2.z);
+      disc.scale.setScalar((1 + (sc - 1) * e) * (1 + 0.22 * Math.sin(Math.PI * t)));
+      disc.rotation.set(0.45 * Math.sin(Math.PI * t), 0, z0 - 8 * Math.PI * e);
+      t < 1 ? requestAnimationFrame(f) : r();
+    })(t0);
+  }).then(() => { disc.visible = false; $('mini').classList.add('landed'); });   // the spinning CD in the box takes over
+  const caseBack = (async () => {
+    await wait(560 * dm);                     // let the disc get clear of the lid before it swings shut
+    g.rotation.y = T + ((g.rotation.y - T + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+    await tw(u.piv.rotation, { y: 0 }, 550 * dm);
+    hideBehind(false);
+    await Promise.all([tw(g.position, { x: u.home.x, y: u.home.y, z: zc - 0.8 }, 750 * dm), tw(g.rotation, { y: T, x: 0 }, 750 * dm)]);
+    await tw(g.position, { z: 0 }, 280 * dm);
+  })();
+  await Promise.all([flight, caseBack]);
+  scene.remove(disc); dp.add(disc); disc.position.set(p0.x, p0.y, TZ + 0.003); disc.rotation.copy(r0); disc.scale.copy(s0); disc.visible = true;   // back in its (now empty) case, ready for next time
+  loRes(u.album); open = null; document.body.classList.remove('opened'); paintNow();
+  busy = false;
+  if (pendingRefresh !== null) { const k = pendingRefresh; pendingRefresh = null; refresh(k); }
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function expandMini() {                 // bring the playing album's case back out of the mini player
+  if (!miniOn || busy || open || !pAlbum) return;
+  const id = pAlbum.id, find = () => cases.find(c => c.userData.album.id === id);
+  let c = find();
+  if (!c) {                                   // scrolled away (or the shelf was rebuilt): go to its row first
+    const i = LIST.findIndex(x => x.id === id);
+    if (i < 0) { $('st').textContent = 'That album isn\u2019t on the shelf right now (clear the search to see it)'; return; }
+    busy = true; targetY = -Math.floor(i / COLS) * ROWH; rememberRow();
+    for (let k = 0; k < 80 && !(c = find()); k++) await wait(40);
+    for (let k = 0; k < 40 && Math.abs(targetY - camY) > 0.03; k++) await wait(40);
+    busy = false;
+  }
+  if (c) openCase(c);
+}
+function stopMini() { au.pause(); setSleep('off'); hideMini(); pAlbum = pCase = null; }
+$('close').onclick = closeCase;
+$('minbtn').onclick = minimizeCase;
+$('mexp').onclick = $('minic').onclick = $('mint').onclick = expandMini;
+$('mx').onclick = stopMini;
+$('mprev').onclick = prevTrack; $('mnext').onclick = () => nextTrack(false);
+$('mplay').onclick = () => au.paused ? au.play() : au.pause();
+au.addEventListener('timeupdate', () => { if (miniOn && au.duration) $('mprog').style.width = (au.currentTime / au.duration * 100) + '%'; });
+const typing = e => !!(e.target.closest && e.target.closest('#ctx')) || e.target === $('q') || e.target === $('seek') || !!(e.target.closest && e.target.closest('#settings'));
+addEventListener('keydown', e => {
+  if (e.key === 'Escape' && fsOn) { e.preventDefault(); return exitFs(); }
+  if (e.key === 'Escape') { if (ctx.classList.contains('show')) return hideCtx(); }
+  if (e.key === 'Escape') return $('settings').classList.contains('show') ? closeSettings() : closeCase();
+  if (typing(e) || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (!open) {
+    if (e.key === ' ' && miniOn) { e.preventDefault(); $('mplay').click(); return; }
+    const go = d => { targetY = Math.min(0, Math.max(-(rows - 1) * ROWH, targetY + d * ROWH)); rememberRow(); };
+    if (e.key === 'PageDown' || e.key === 'ArrowDown') go(-(e.key === 'PageDown' ? 2 : 1)); else if (e.key === 'PageUp' || e.key === 'ArrowUp') go(e.key === 'PageUp' ? 2 : 1);
+    else if (e.key === 'Home') go(1e6); else if (e.key === 'End') go(-1e6);
+    return;
+  }
+  if (busy) return;
+  if (e.key === ' ') { e.preventDefault(); $('play').click(); }
+  else if (e.key === 'ArrowRight') nextTrack(false);
+  else if (e.key === 'ArrowLeft') prevTrack();
+  else if (e.key === 'l' || e.key === 'L') seekBy(10);
+  else if (e.key === 'j' || e.key === 'J') seekBy(-10);
+  else if (e.key === '[') nudgeLyrics(-0.1);
+  else if (e.key === ']') nudgeLyrics(0.1);
+  else if (e.key === 's' || e.key === 'S') setOpt('shuf', !S.shuf);
+  else if (e.key === 'r' || e.key === 'R') cycleRep();
+  else if (e.key === 'm' || e.key === 'M') { S.muted = !S.muted; applyVol(); saveSet(); }
+  else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); S.vol = Math.min(1, Math.max(0, S.vol + (e.key === 'ArrowUp' ? 0.05 : -0.05))); S.muted = false; applyVol(); saveSet(); }
+});
+$('gh').onclick = () => openLink('github', '', GH);
+const hideHint = () => $('hint').classList.add('hide');
+addEventListener('wheel', hideHint, { once: true }); addEventListener('pointerdown', hideHint, { once: true });
+let rowT; const rememberRow = () => { clearTimeout(rowT); rowT = setTimeout(() => { S.row = Math.round(-targetY / ROWH); saveSet(); }, 700); };
+
+// input
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(2, 2);
+const tip = $('tip'); let lastHover = null, mouseDirty = true, lastRay = 0, shadowUntil = 0, renderUntil = 0, lastDraw = 0;
+const kick = (ms = 250) => { renderUntil = Math.max(renderUntil, performance.now() + ms); };   // something changed outside the loop (a texture arrived): draw a few frames
+addEventListener('pointermove', e => {
+  mouseDirty = true;
+  if (e.target === ren.domElement) mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); else mouse.set(2, 2);
+  tip.style.transform = `translate(${Math.min(e.clientX + 18, innerWidth - 330)}px,${e.clientY + 18}px)`;
+});
+ren.domElement.addEventListener('click', () => { if (!busy && !open && hover) openCase(hover); });
+addEventListener('wheel', e => {
+  if (open || (e.target.closest && e.target.closest('#settings,#setback,#panel'))) return;
+  targetY = Math.min(0, Math.max(-(rows - 1) * ROWH, targetY - e.deltaY * 0.0035 * (e.shiftKey ? 4 : 1))); rememberRow();
+});
+let drag = false;
+ren.domElement.addEventListener('pointerdown', () => drag = true);
+addEventListener('pointerup', () => drag = false);
+addEventListener('pointermove', e => { if (drag && open && !busy) open.rotation.y += e.movementX * 0.01; });
+
+// loop
+const HZ = 1.55, sm = x => x * x * (3 - 2 * x), cl01 = x => Math.max(0, Math.min(1, x));   // how far a hovered case slides out, and an ease for its two stages
+let hoverReady = null, hoverT0 = 0; const hbx = new THREE.Box3(), hpt = new THREE.Vector3();
+async function hoverArt(a) {                   // a sharper front cover while a case is pulled out
+  if (!a.lm || a.hi) return;
+  for (const u of [a.big, a.cover]) {
+    if (!u) continue;
+    try {
+      const im = await loadImg(u); if (!a.lm || a.hi || !a.on) return;
+      const c = canvas(768, 768); c.getContext('2d').drawImage(im, 0, 0, 768, 768);
+      a.hi = tex(c); a.lm.map = a.hi; a.lm.needsUpdate = true; kick(400); return;
+    } catch {}
+  }
+}
+const outCubic = t => 1 - Math.pow(1 - t, 3);
+let last = performance.now(), spin = 0, idxT = 0;
+function loop(n) {
+  const dt = Math.min(0.05, (n - last) / 1000); last = n;
+  camY += (targetY - camY) * Math.min(1, dt * 8);
+  const calm = open || busy || !S.para, mx = calm || Math.abs(mouse.x) > 1 ? 0 : mouse.x, my = calm || Math.abs(mouse.y) > 1 ? 0 : mouse.y;
+  cam.position.y = camY; cam.position.x += (mx * 0.22 - cam.position.x) * Math.min(1, dt * 4);
+  cam.lookAt(cam.position.x * 0.4, camY + (my * 0.12), 0);
+  if (!(open && !busy)) { syncRows(); pumpMount(n - introStart < 700 ? 14 : 6); }
+  if (!open && !busy) {
+    if (mouseDirty || Math.abs(targetY - camY) > 0.0005 || n - lastRay > 150 || (hover && hover.userData.h > 0 && hover.userData.h < 1)) {   // the ray only needs re-casting when something could have changed
+      mouseDirty = false; lastRay = n; ray.setFromCamera(mouse, cam);
+      let nh = null; const hu = hover && hover.userData;
+      if (hu && hu.h > 0.02 && ray.intersectObject(hover, true).length) nh = hover;     // still over the case that is out: keep it
+      else {                                    // otherwise go by where each case rests on the shelf, so one sliding out from under the pointer can't drop (or steal) the hover
+        let best = Infinity;
+        for (const c of cases) {
+          const u = c.userData; if (c === open || u.intro || !c.visible) continue;
+          hbx.min.set(u.home.x - P / 2, u.home.y - CH / 2, -CW / 2); hbx.max.set(u.home.x + P / 2, u.home.y + CH / 2, CW / 2);
+          if (ray.ray.intersectBox(hbx, hpt)) { const d = ray.ray.origin.distanceToSquared(hpt); if (d < best) { best = d; nh = c; } }
+        }
+      }
+      hover = nh;
+      ren.domElement.style.cursor = hover ? 'pointer' : 'default';
+    }
+    if (hover !== lastHover) {
+      lastHover = hover; shadowUntil = n + 600; hoverReady = null; hoverT0 = n;
+    }
+    if (hover && hover !== hoverReady && n - hoverT0 > 130) { hoverReady = hover; upgrade(hover); hoverArt(hover.userData.album); }   // dwell a moment first, so sweeping the mouse along the shelf doesn't build every case
+  } else if (lastHover) { lastHover = null; hoverReady = null; tip.classList.remove('show'); }
+  sun.position.set(1.5, camY + 3.5, 6); sun.target.position.set(0, camY, 0);
+  for (const c of cases) {
+    if (c === open) continue;
+    const u = c.userData;
+    if (u.intro) {
+      const p = (n - u.intro.t0) / 650;
+      shadowUntil = n + 150;
+      if (p < 0) { c.visible = false; continue; }
+      c.visible = true;
+      if (p >= 1) { u.intro = null; c.position.copy(u.home); } else { const e = outCubic(p); c.position.set(u.home.x, u.home.y - (1 - e) * 0.7, -(1 - e) * 0.5); }
+      continue;
+    }
+    const want = c === hover && c === hoverReady && u.full;
+    const h0 = u.h || 0, h = want ? Math.min(1, h0 + dt / 0.5) : Math.max(0, h0 - dt / 0.32); u.h = h;
+    if (h > 0) {                               // stage 1: slide forward, spine first (clear of the neighbours); stage 2: turn to face you
+      const p1 = sm(cl01(h / 0.5)), p2 = sm(cl01((h - 0.5) / 0.5)), vis = (camZ - HZ) * Math.tan(Math.PI / 8) * cam.aspect, lim = Math.max(0, vis - 0.45);
+      const tx = Math.max(-lim, Math.min(lim, u.home.x)); u.tilt = (u.tilt || 0) + ((-mouse.x * 0.22) - (u.tilt || 0)) * Math.min(1, dt * 6);
+      c.position.set(u.home.x + (tx - u.home.x) * p1, u.home.y, HZ * p1); c.rotation.set(0, Math.PI / 2 * (1 - p2) + u.tilt * p2, 0);
+      u.out = true; shadowUntil = n + 150;
+    } else if (u.out) {
+      u.out = false; c.position.copy(u.home); c.rotation.set(0, Math.PI / 2, 0);
+      if (!open || open.userData.album !== u.album) loRes(u.album);
+    }
+  }
+  const logoOn = !!logoG && logoG.visible && !open && camY > -ROWH * 0.9;      // swaying only while it can be seen and nothing is open
+  if (logoOn) { logoG.rotation.y = Math.sin(n / 1700) * 0.32; logoG.rotation.x = Math.sin(n / 2300) * 0.05; logoDisc.rotation.y = n / 900; }
+  spin += ((open && S.spin && !au.paused ? 7 : 0) - spin) * Math.min(1, dt * 3);
+  if (open) open.userData.disc.rotation.z -= spin * dt;
+  if (lyr.lines) tickLyrics(lyrTime());
+  if (fxKind === 'glow') { const ta = open ? open.userData.album : hover ? hover.userData.album : null; tintTo = ta ? cLab(ta) : { h: 28, s: 0.3 }; }
+  drawFx(n); drawViz();
+  if (n - idxT > 250) { idxT = n; markIndex(); }
+  const act = logoOn || n < shadowUntil || n < renderUntil || Math.abs(targetY - camY) > 0.0005 || mountQ.length || busy || drag || (open && (spin > 0.05 || !au.paused)) || Math.abs(mx * 0.22 - cam.position.x) > 0.0004;
+  if (act && !(open && !busy && !drag)) ren.shadowMap.needsUpdate = true;
+  if (act || n - lastDraw > 600) { lastDraw = n; ren.render(scene, cam); }   // an idle shelf costs nothing
+  requestAnimationFrame(loop);
+}
+
+// ---- library state (lives in the main process; this is the working copy) ----
+const BYID = new Map(); let LIB = [], ROOTS = [], TRACKS = 0, scanning = false;
+const strip = s => (s || '').replace(/^[^\p{L}\p{N}]+/u, '');
+function setCover(a) {
+  if (a.thumb) { a.cover = `shelf://c/${a.id}.jpg?v=${a.cv || 0}`; a.big = `shelf://b/${a.id}.jpg`; }
+  else { a.big = null; a.cover = ((S.dl !== 'click' || a.opened) && a.art && a.art.front) || null; }
+}
+function hydrate(a) {
+  a.local = Object.fromEntries(Object.entries(a.local || {}).map(([k, p]) => [k, imgUrl(p)]));
+  a.m = a.m || {}; a.col = a.m.col || null; a.art = cachedArt(a);
+  a.hay = (a.artist + ' ' + a.title + ' ' + a.tracks.map(t => t.t).join(' ')).toLowerCase();
+  a.sT = strip(a.title); a.sA = strip(a.artist); a.on = false; setCover(a); return a;
+}
+function coverReady(a) {
+  setCover(a);
+  if (a.on && (!a.col || a.lm)) applyCover(a, !a.lm);
+  if (open && open.userData.album === a) hiRes(a);
+}
+const CC = { q: [], n: 0 };
+function ensureCoverCached(a) {   // an online cover gets saved next to the embedded ones, so it is never downloaded twice; two at a time, visible albums first
+  if (a.thumb || a.cc || !a.art || !a.art.front) return;
+  a.cc = 1; CC.q.push(a); pumpCC();
+}
+function pumpCC() {
+  while (CC.n < 2 && CC.q.length) {
+    let i = CC.q.findIndex(x => x.on || (open && open.userData.album === x)); if (i < 0) i = 0;
+    const a = CC.q.splice(i, 1)[0]; CC.n++;
+    api.cacheCover(a.id, a.art.front).then(ok => { if (ok) { a.thumb = true; a.cv = Date.now(); a.cc = 0; } }).catch(() => {}).finally(() => { CC.n--; coverReady(a); pumpCC(); });
+  }
+}
+function stat() {
+  const busyNow = scanning || Q.run, el = $('st');
+  el.classList.toggle('scan', busyNow);
+  if (!busyNow) el.textContent = LIB.length ? `${LIB.length.toLocaleString()} albums \u00b7 ${TRACKS.toLocaleString()} songs` : '';
+  $('libstat').textContent = LIB.length ? `${LIB.length.toLocaleString()} albums \u00b7 ${TRACKS.toLocaleString()} songs` : 'Nothing here yet';
+}
+const setProg = p => $('prog').style.width = p + '%';
+function setLib(d, keep) {
+  for (const a of Q.lo) a.q = 0; Q.lo.length = 0; for (const a of CC.q) a.cc = 0; CC.q.length = 0;
+  ROOTS = d.roots || []; LIB = (d.albums || []).map(hydrate); BYID.clear(); for (const a of LIB) BYID.set(a.id, a);
+  TRACKS = LIB.reduce((n, a) => n + a.tracks.length, 0);
+  renderRoots(); document.body.classList.toggle('has-lib', !!LIB.length);
+  $('empty').classList.toggle('hide', !!LIB.length || scanning);
+  refresh(keep); for (const a of LIB) queueArt(a); stat();
+}
+
+// ---- search, sort, A-Z index ----
+const keyOf = a => {
+  if (S.sort === 'year') return a.year ? Math.floor(a.year / 10) * 10 + 's' : '?';
+  const c = (S.sort === 'artist' ? a.sA : a.sT).charAt(0).toUpperCase(); return /\p{L}/u.test(c) ? c : '#';
+};
+function buildIndex(list) {
+  const seen = new Map(); list.forEach((a, i) => { const k = keyOf(a); if (!seen.has(k)) seen.set(k, Math.floor(i / COLS)); });
+  const el = $('idx'); el.innerHTML = '';
+  for (const [k, r] of seen) { const b = document.createElement('button'); b.textContent = k; b.dataset.k = k; b.onclick = () => { targetY = -r * ROWH; rememberRow(); }; el.appendChild(b); }
+  el.style.display = seen.size > 1 ? 'flex' : 'none';
+}
+function markIndex() {
+  if (!LIST.length || open) return;
+  const k = keyOf(LIST[Math.min(LIST.length - 1, Math.max(0, Math.round(-camY / ROWH)) * COLS)]);
+  for (const b of $('idx').children) b.classList.toggle('on', b.dataset.k === k);
+}
+function refresh(keep) {
+  if (open || busy) { pendingRefresh = !!keep; return; }
+  const q = $('q').value.trim().toLowerCase(), s = S.sort;
+  const l = q ? LIB.filter(a => a.hay.includes(q)) : LIB.slice();
+  l.sort((x, y) => s === 'year' ? (x.year || 1e9) - (y.year || 1e9) || COLL.compare(x.sA, y.sA) || COLL.compare(x.sT, y.sT)
+    : s === 'title' ? COLL.compare(x.sT, y.sT) || COLL.compare(x.sA, y.sA) : COLL.compare(x.sA, y.sA) || COLL.compare(x.sT, y.sT));
+  build(l, keep); buildIndex(l);
+}
+let dbt; $('q').oninput = () => { clearTimeout(dbt); dbt = setTimeout(() => refresh(false), 220); };
+
+// ---- per-album facts worth remembering (cover colour, online artwork), saved by the main process ----
+let PATCH = { albums: {}, photos: {} }, patchT, PHOTO = {};
+function flushPatch() { if (!Object.keys(PATCH.albums).length && !Object.keys(PATCH.photos).length) return; api.patchMeta(PATCH); PATCH = { albums: {}, photos: {} }; }
+const later = () => { clearTimeout(patchT); patchT = setTimeout(flushPatch, 2500); };
+function patch(a, o) { Object.assign(a.m ||= {}, o); Object.assign(PATCH.albums[a.id] ||= {}, o); later(); }
+function patchPhoto(k, v) { PATCH.photos[k] = v; later(); }
+addEventListener('beforeunload', flushPatch);
+
+// ---- online artwork queue: albums on screen first, then the rest of the library, one request at a time ----
+const Q = { lo: [], run: false };
+const cachedArt = a => { const e = a.m && a.m.art; return e && (e.front || Date.now() - (e._t || 0) < 3 * 864e5) ? e : null; };   // an empty result is only trusted for 3 days
+function queueArt(a, force) {
+  if (S.dl === 'click' && !force) return;
+  if (a.art) { ensureCoverCached(a); return; }
+  if (!S.net || a.artist === 'Unknown Artist' || a.q) return;
+  a.q = 1; Q.lo.push(a); pumpArt();
+}
+const nextArt = () => { let i = Q.lo.findIndex(a => a.on || (open && open.userData.album === a)); if (i < 0) i = 0; return Q.lo.splice(i, 1)[0]; };
+async function pumpArt() {
+  if (Q.run) return; Q.run = true; stat();
+  try {
+    while (Q.lo.length) {
+      if (!S.net) { for (const a of Q.lo) a.q = 0; Q.lo.length = 0; break; }
+      const a = nextArt(); if (!a) break;
+      if (a.art) { a.q = 0; continue; }
+      let art = cachedArt(a), fresh = false;
+      if (!art) { if (!scanning) { $('st').textContent = `Finding artwork: ${a.title} (${Q.lo.length + 1} left)`; } art = await findArt(a); fresh = true; }
+      a.q = 0;
+      if (art) { if (fresh) patch(a, { art: art.front ? art : { ...art, _t: Date.now() } }); useArt(a, art); }
+      if (fresh) await sleep(1100);
+    }
+  } finally { Q.run = false; stat(); }
+}
+function useArt(a, art) {
+  a.art = art; setCover(a); ensureCoverCached(a);
+  if (a.on && (!a.col || a.lm)) applyCover(a, !a.lm);          // straight onto the shelf from the download, no waiting for the disk cache
+  if (art.spine && a.spineKind !== 'official' && a.on) applySpine(a);
+  if (art.back && a.on) queueBack(a);
+  if (open && open.userData.album === a) hiRes(a);
+}
+
+// ---- main-process events ----
+api.on('lib:data', d => setLib(d, true));
+api.on('scan:state', s => { scanning = s.on; if (!s.on) { setProg(0); if (!LIB.length) { $('empty').classList.remove('hide'); $('empty').querySelector('p').textContent = 'No audio files found in that folder. Try another one.'; } } stat(); });
+api.on('scan:progress', p => { if (p.text) $('st').textContent = p.text; if (p.pct != null) setProg(p.pct); });
+api.on('cover:ready', ids => { for (const id of ids) { const a = BYID.get(id); if (a) { a.thumb = true; a.cv = Date.now(); coverReady(a); } } });
+
+// ---- folders ----
+function renderRoots() {
+  const el = $('roots'); el.innerHTML = '';
+  if (!ROOTS.length) { el.textContent = 'No folders yet'; return; }
+  for (const r of ROOTS) {
+    const d = document.createElement('div'), s = document.createElement('span'), b = document.createElement('button');
+    d.className = 'root'; s.textContent = r; s.title = r; b.textContent = '\u00d7'; b.title = 'Remove this folder'; b.setAttribute('aria-label', 'Remove folder');
+    b.onclick = async () => { ROOTS = ROOTS.filter(x => x !== r); renderRoots(); await api.removeRoot(r); };
+    d.append(s, b); el.append(d);
+  }
+}
+$('pick').onclick = $('pick2').onclick = $('addf').onclick = async () => { if (await api.pick()) { $('empty').classList.add('hide'); closeSettings(); } };
+$('resc').onclick = () => api.scan(false);
+$('rebuild').onclick = () => api.scan(true);
+$('forget').onclick = async () => {
+  if (!confirm('Forget all folders, tags and cached covers? Your music files are not touched.')) return;
+  closeSettings(); setLib(await api.forget()); $('empty').classList.remove('hide');
+  $('empty').querySelector('p').textContent = 'Your music collection as a shelf of jewel cases. Pick a folder to build it.';
+};
+
+async function artistPhoto(artist) {          // lead image of the artist's Wikipedia page (CORS-friendly)
+  if (!artist || artist === 'Unknown Artist' || artist === 'Various Artists') return null;
+  if (artist in PHOTO) return PHOTO[artist] || null;
+  let url = null;
+  try {
+    const q = encodeURIComponent(artist + ' band');
+    const r = await (await fetch('https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=' + q + '&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=900&format=json&origin=*')).json();
+    const pg = Object.values((r.query || {}).pages || {})[0];
+    const title = pg && pg.title.toLowerCase().replace(/\s*\(.*\)$/, ''), name = artist.toLowerCase();
+    if (pg && pg.thumbnail && (title.includes(name) || name.includes(title))) url = pg.thumbnail.source;
+  } catch { return null; }                    // network trouble: don't remember a miss
+  PHOTO[artist] = url || ''; patchPhoto(artist, PHOTO[artist]);
+  return url;
+}
+// "Remastered", "25th Anniversary Edition", "(Deluxe)" etc. are tag noise: search for the plain album as well
+const NOISE = '(?:remaster(?:ed)?|re-?master(?:ed)?|anniversary|deluxe|expanded|special|collector\'?s?|legacy|bonus|super|limited|reissue|re-?issue|edition|version|mono|stereo|digital|explicit|clean|platinum|tour|redux|rarities|\\d{4})';
+function cleanTitle(t) {
+  let c = t;
+  c = c.replace(new RegExp('\\s*[\\[(][^\\])]*' + NOISE + '[^\\])]*[\\])]', 'ig'), '');                       // (… Remastered …) / [… Anniversary Edition]
+  c = c.replace(new RegExp('\\s*[-–—:,]\\s*(?:[^-–—:,]*\\b' + NOISE + '\\b[^-–—:,]*)$', 'i'), '');          // trailing " - 2009 Remaster"
+  c = c.replace(new RegExp('\\s+(?:\\d+\\w*\\s+anniversary(?:\\s+\\w+)?|(?:deluxe|expanded|remastered|special|legacy)(?:\\s+(?:edition|version))?)\\s*$', 'i'), '');
+  c = c.replace(/\s{2,}/g, ' ').trim();
+  return c.length >= 2 ? c : t;
+}
+const normT = t => t.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim();
+async function mbSearch(title, artist, cd) {
+  const q = encodeURIComponent('release:"' + title.replace(/"/g, '') + '" AND artist:"' + artist.replace(/"/g, '') + '"' + (cd ? ' AND format:CD' : ''));
+  const j = await (await fetch('https://musicbrainz.org/ws/2/release/?query=' + q + '&fmt=json&limit=25')).json();
+  return j.releases || [];
+}
+async function findArt(a) {
+  const plain = cleanTitle(a.title), titles = plain === a.title ? [a.title] : [a.title, plain];
+  const rels = [], seen = new Set();
+  const add = l => { for (const r of l) if (!seen.has(r.id)) { seen.add(r.id); rels.push(r); } };
+  let netOk = false;
+  try {
+    for (const t of titles) {
+      add(await mbSearch(t, a.artist, true)); netOk = true; await sleep(1100);
+      if (rels.length < 6) { add(await mbSearch(t, a.artist, false)); await sleep(1100); }
+    }
+  } catch { if (!netOk) return null; }
+  // best matching titles first (exact original, then exact plain, then the rest)
+  const rank = r => normT(r.title || '') === normT(a.title) ? 0 : normT(r.title || '') === normT(plain) ? 1 : normT(r.title || '').startsWith(normT(plain)) ? 2 : 3;
+  rels.sort((x, y) => rank(x) - rank(y) || (y.score || 0) - (x.score || 0));
+  // merge: take each piece (front, back, spine, ...) from the first release that has it
+  const best = {}, want = ['front', 'back', 'spine', 'medium', 'tray', 'booklet'];
+  let looked = 0;
+  for (const rel of rels.filter(r => rank(r) < 3).concat(rels.filter(r => rank(r) === 3).slice(0, 4)).slice(0, 14)) {
+    if (want.every(k => best[k])) break;
+    try {
+      const resp = await fetch('https://coverartarchive.org/release/' + rel.id);
+      if (!resp.ok) continue;
+      const c = await resp.json(); looked++;
+      const pick = (t, big) => { const im = c.images.find(i => i.types.includes(t)); return im && ((big && im.thumbnails['1200']) || im.thumbnails['500'] || im.thumbnails.large || im.image); };
+      const bk = c.images.filter(i => i.types.includes('Booklet')).map(im => im.thumbnails['500'] || im.thumbnails.large || im.image);
+      const o = { front: pick('Front'), back: pick('Back'), spine: pick('Spine', true), medium: pick('Medium'), tray: pick('Tray') || pick('Liner'), booklet: bk[1] || bk[0] };
+      for (const k of want) if (!best[k] && o[k]) best[k] = o[k];
+    } catch {}
+  }
+  if (!best.front) for (const t of titles) try {
+    const res = (await (await fetch('https://itunes.apple.com/search?entity=album&limit=8&term=' + encodeURIComponent(a.artist + ' ' + t))).json()).results || [];
+    const an = normT(a.artist), pn = normT(plain);
+    const ok = res.filter(r => { const ra = normT(r.artistName || ''); return ra.includes(an) || an.includes(ra); });
+    const r = ok.find(r => normT(r.collectionName || '') === pn) || ok.find(r => normT(cleanTitle(r.collectionName || '')) === pn) || ok.find(r => normT(r.collectionName || '').includes(pn)) || ok[0];
+    if (r) { best.front = r.artworkUrl100.replace('100x100', '600x600'); break; }
+  } catch {}
+  return best;
+}
+
+// ---- settings menu ----
+function chip(host, k, v, name, sw) {
+  const b = document.createElement('button'); b.className = 'chip'; b.dataset.k = k; b.dataset.v = v;
+  const i = document.createElement('i'); i.style.background = sw; b.append(i, name); $(host).append(b);
+}
+const ACC = {
+  amber: ['Amber', '#f2b36b', '#ff7a59', '242,179,107', '#1d1209'], rose: ['Rose', '#f58fb0', '#ff5c8a', '245,143,176', '#2a0e18'],
+  violet: ['Violet', '#b69cff', '#7c6cff', '182,156,255', '#140d2e'], ocean: ['Ocean', '#6cb8ff', '#4a7dff', '108,184,255', '#07162b'],
+  teal: ['Teal', '#5fd8c4', '#2fa8c9', '95,216,196', '#06201c'], green: ['Green', '#8fd96b', '#3fb97a', '143,217,107', '#0e2008'],
+  crimson: ['Crimson', '#ff7a7a', '#e0405a', '255,122,122', '#2a0a0e'], silver: ['Silver', '#e6e3de', '#9a9690', '230,227,222', '#151413']
+};
+function applyAccent() {
+  const a = ACC[S.acc] || ACC.amber, r = document.documentElement.style;
+  r.setProperty('--acc', a[1]); r.setProperty('--acc2', a[2]); r.setProperty('--acc-rgb', a[3]); r.setProperty('--on-acc', a[4]);
+  paintLogo(); kick();
+}
+for (const [k, v] of Object.entries(ACC)) chip('accChips', 'acc', k, v[0], `linear-gradient(135deg,${v[1]},${v[2]})`);
+for (const [k, v] of Object.entries(STYLES)) chip('styleChips', 'style', k, v.n, v.sw);
+for (const [k, v] of Object.entries(BGS)) chip('bgChips', 'bg', k, v.n, v.sw);
+const HOOK = {
+  sort: () => refresh(false),
+  style: () => refresh(true),
+  idx: () => document.body.classList.toggle('noidx', !S.idx),
+  pane: () => { $('panel').classList.toggle('lv', S.pane === 'lyrics'); lyr.cur = -2; },
+  per: reflow,
+  bg: applyBg,
+  eqOn: () => eqApply(),
+  acc: applyAccent,
+  viz: () => applyViz(),
+  shuf: () => { refillBag(idx); syncModes(); },
+  rep: syncModes,
+  rem: () => au.ontimeupdate && au.ontimeupdate(),
+  logo: () => { if (logoG) logoG.visible = !!S.logo; kick(); },
+  lsrc: () => { paintLsrc(); if (open && tracks[idx]) loadLyrics(tracks[idx]); },
+  olyr: () => { lyr.cache.clear(); if (open && tracks[idx]) loadLyrics(tracks[idx]); },
+  scr: () => { applyBackMaps(); if (open) hiRes(open.userData.album); },
+  net: () => { if (S.net) for (const a of LIB) queueArt(a); },
+  dl: () => {
+    if (S.dl === 'click') { for (const a of Q.lo) a.q = 0; Q.lo.length = 0; for (const a of CC.q) a.cc = 0; CC.q.length = 0; }
+    else for (const a of LIB) queueArt(a);
+  },
+  bsp: () => {
+    if (S.bsp) { for (const a of LIB) if (a.on) { if (a.spc === 'b' && !a.spineKind) loadCachedSpine(a); else queueBack(a); } if (open) hiRes(open.userData.album); return; }
+    for (const a of LIB) if (a.spineKind === 'back') { a.spineKind = null; a.realSpine = false; if (a.on) setSpine(a, spineCanvas(a)); }   // back to the generated spine
+  }
+};
+function syncUI() {
+  document.querySelectorAll('.seg').forEach(seg => seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', String(S[seg.dataset.k]) === b.dataset.v)));
+  document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', String(S[c.dataset.k]) === c.dataset.v));
+  document.querySelectorAll('.sw input[data-k]').forEach(i => i.checked = !!S[i.dataset.k]);
+}
+function setOpt(k, v) { S[k] = v; saveSet(); syncUI(); if (HOOK[k]) HOOK[k](); }
+document.querySelectorAll('.seg').forEach(seg => seg.querySelectorAll('button').forEach(b => b.onclick = () => setOpt(seg.dataset.k, /^\d+$/.test(b.dataset.v) ? +b.dataset.v : b.dataset.v)));
+document.querySelectorAll('.chip').forEach(c => c.onclick = () => setOpt(c.dataset.k, c.dataset.v));
+document.querySelectorAll('.sw input[data-k]').forEach(i => i.onchange = () => setOpt(i.dataset.k, i.checked));
+
+const setBtn = $('setbtn'), setPop = $('settings'), setBack = $('setback');
+let stab = 'library';
+function showTab(t) {
+  stab = t;
+  document.querySelectorAll('#stabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  document.querySelectorAll('#sbody section').forEach(p => p.classList.toggle('on', p.dataset.p === t));
+  $('sbody').scrollTop = 0;
+}
+document.querySelectorAll('#stabs button').forEach(b => b.onclick = () => showTab(b.dataset.t));
+function closeSettings() { setPop.classList.remove('show'); setBack.classList.remove('show'); setBtn.setAttribute('aria-expanded', 'false'); }
+setBtn.onclick = () => {
+  const on = !setPop.classList.contains('show'); setPop.classList.toggle('show', on); setBack.classList.toggle('show', on); setBtn.setAttribute('aria-expanded', on);
+  if (on) { showTab(stab); eqDraw(); }
+};
+$('sclose').onclick = closeSettings;
+addEventListener('pointerdown', e => { if (!setPop.contains(e.target) && !setBtn.contains(e.target)) closeSettings(); });
+
+
+// ---- mini visualizer: reads the analyser that sits in front of the speakers ----
+const vz = $('viz'), vx = vz.getContext('2d'), VB = 32; let vF = null, vT = null, vLv = new Float32Array(VB), vIdle = true, vDpr = 1;
+function applyViz(init) { document.body.classList.toggle('noviz', !S.viz); if (S.viz && init !== true) eqApply(); }   // at start-up the audio graph is only built once a song actually plays
+function drawViz() {
+  if (!S.viz || !open || busy || !EQ.an) { if (!vIdle) { vx.clearRect(0, 0, vz.width, vz.height); vIdle = true; } return; }
+  const w = vz.clientWidth, h = vz.clientHeight; if (!w) return;
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  if (vz.width !== Math.round(w * dpr) || vz.height !== Math.round(h * dpr)) { vz.width = Math.round(w * dpr); vz.height = Math.round(h * dpr); }
+  const W = vz.width, H = vz.height, a = ACC[S.acc] || ACC.amber, playing = !au.paused && EQ.ctx.state === 'running';
+  if (!playing && vLv.every(v => v < 0.01) && S.vizs !== 'wave') { if (!vIdle) { vx.clearRect(0, 0, W, H); vIdle = true; } return; }
+  vIdle = false; vx.clearRect(0, 0, W, H);
+  const g = vx.createLinearGradient(0, H, 0, 0); g.addColorStop(0, a[2]); g.addColorStop(1, a[1]);
+  if (S.vizs === 'wave') {
+    if (!vT) vT = new Uint8Array(EQ.an.fftSize); EQ.an.getByteTimeDomainData(vT);
+    vx.lineWidth = 2 * dpr; vx.lineJoin = 'round'; vx.strokeStyle = g; vx.beginPath();
+    for (let i = 0; i < W; i += 2) { const s = (vT[Math.floor(i / W * (vT.length - 1))] - 128) / 128; const y = H / 2 + s * H * 0.46; i ? vx.lineTo(i, y) : vx.moveTo(i, y); }
+    vx.stroke(); return;
+  }
+  if (!vF) vF = new Uint8Array(EQ.an.frequencyBinCount);
+  EQ.an.getByteFrequencyData(vF);
+  const nyq = EQ.ctx.sampleRate / 2, bw = nyq / vF.length, gap = 3 * dpr, bwid = (W - gap * (VB + 1)) / VB;
+  vx.fillStyle = g;
+  for (let i = 0; i < VB; i++) {
+    const f0 = 40 * Math.pow(14000 / 40, i / VB), f1 = 40 * Math.pow(14000 / 40, (i + 1) / VB);
+    const b0 = Math.floor(f0 / bw), b1 = Math.max(b0 + 1, Math.ceil(f1 / bw)); let m = 0;
+    for (let k = b0; k < b1 && k < vF.length; k++) m = Math.max(m, vF[k]);
+    const tilt = 0.8 + 0.5 * i / VB, v = playing ? Math.min(1, Math.pow(m / 255, 1.35) * tilt) : 0;   // gentle lift on the highs, which are quieter in music
+    vLv[i] = Math.max(v, vLv[i] * 0.86);
+    const bh = Math.max(2 * dpr, vLv[i] * (H - 6 * dpr)), x = gap + i * (bwid + gap), y = H - bh - 3 * dpr, r = Math.min(bwid / 2, 3 * dpr);
+    vx.beginPath(); vx.roundRect ? vx.roundRect(x, y, bwid, bh, r) : vx.rect(x, y, bwid, bh); vx.fill();
+  }
+}
+// ---- equalizer: 10 bands through Web Audio; the graph is only built the first time it is switched on ----
+const EQF = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+const EQP = {
+  flat: ['Flat', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]], bass: ['Bass boost', [6, 5, 4, 2, 0, 0, 0, 0, 0, 0]], treble: ['Treble boost', [0, 0, 0, 0, 0, 0, 2, 4, 5, 6]],
+  vocal: ['Vocal', [-2, -2, -1, 1, 3, 4, 3, 1, 0, -1]], rock: ['Rock', [5, 4, 2, -1, -2, -1, 2, 4, 5, 5]], electronic: ['Electronic', [5, 4, 1, 0, -2, 2, 1, 2, 4, 5]],
+  acoustic: ['Acoustic', [4, 4, 3, 1, 1, 1, 2, 3, 3, 2]], loudness: ['Loudness', [6, 4, 0, 0, -1, 0, -1, -1, 4, 2]]
+};
+const EQ = { ctx: null, src: null, f: [], pre: null, routed: null };
+const eqFilters = ctx => EQF.map((hz, i) => {
+  const n = ctx.createBiquadFilter(); n.type = i === 0 ? 'lowshelf' : i === EQF.length - 1 ? 'highshelf' : 'peaking'; n.frequency.value = hz; n.Q.value = 1.1; return n;
+});
+const fmtDb = v => (v > 0 ? '+' : v < 0 ? '\u2212' : '') + Math.abs(v).toFixed(Number.isInteger(v) ? 0 : 1);
+const EQN = 120, EQFR = Float32Array.from({ length: EQN }, (_, i) => 20 * Math.pow(1000, i / (EQN - 1)));   // 20 Hz .. 20 kHz, log spaced
+let EQCV = null;
+function eqResp() {                       // combined response of all bands in dB (also used to size the automatic headroom)
+  if (!EQCV) { const c = new OfflineAudioContext(1, 1, 44100); EQCV = { f: eqFilters(c), mag: new Float32Array(EQN), ph: new Float32Array(EQN) }; }
+  const db = new Float32Array(EQN);
+  EQCV.f.forEach((n, i) => { n.gain.value = S.eqG[i]; n.getFrequencyResponse(EQFR, EQCV.mag, EQCV.ph); for (let k = 0; k < EQN; k++) db[k] += 20 * Math.log10(Math.max(EQCV.mag[k], 1e-6)); });
+  return db;
+}
+function eqDraw() {
+  let db; try { db = eqResp(); } catch { return; }
+  const W = 300, H = 80, y = v => H / 2 - Math.max(-14, Math.min(14, v)) / 12 * (H / 2 - 6);
+  let d = ''; db.forEach((v, k) => { d += (k ? 'L' : 'M') + (k / (EQN - 1) * W).toFixed(1) + ' ' + y(v).toFixed(1); });
+  $('eqln').setAttribute('d', d); $('eqfl').setAttribute('d', d + `L${W} ${H / 2}L0 ${H / 2}Z`);
+  const pk = Math.max(0, ...db);
+  $('eqnote').textContent = pk > 0.05 ? `Boosted bands lower the overall level by ${pk.toFixed(1)} dB automatically so loud songs do not clip.` : 'No boost, so no level change.';
+}
+function eqGraph() {
+  if (EQ.ctx) return true;
+  try {
+    const ctx = new AudioContext({ latencyHint: 'playback' }), srcs = AE.map(e => ctx.createMediaElementSource(e)), src = { disconnect: () => srcs.forEach(n => n.disconnect()), connect: t => srcs.forEach(n => n.connect(t)) }, f = eqFilters(ctx), pre = ctx.createGain();
+    const an = ctx.createAnalyser(); an.fftSize = 1024; an.smoothingTimeConstant = 0.72; an.connect(ctx.destination);   // passes sound straight through; the visualizer only reads it
+    pre.connect(f[0]); for (let i = 1; i < f.length; i++) f[i - 1].connect(f[i]); f[f.length - 1].connect(an);
+    Object.assign(EQ, { ctx, src, f, pre, an, routed: null }); return true;
+  } catch (e) { console.error('equalizer unavailable', e); return false; }
+}
+function eqResume() { if (EQ.ctx && EQ.ctx.state === 'suspended') EQ.ctx.resume().catch(() => {}); }
+function eqApply() {
+  if (S.eqOn || S.viz || EQ.ctx) {
+    if (!eqGraph()) { $('st').textContent = 'The equalizer is not available on this system'; }
+    else {
+      const t = EQ.ctx.currentTime, head = Math.max(0, ...eqResp());
+      S.eqG.forEach((g, i) => EQ.f[i].gain.setTargetAtTime(g, t, 0.02));
+      EQ.pre.gain.setTargetAtTime(Math.pow(10, (S.eqPre - head) / 20), t, 0.02);
+      const want = S.eqOn ? 'eq' : 'dry';
+      if (EQ.routed !== want) { EQ.src.disconnect(); EQ.src.connect(S.eqOn ? EQ.pre : EQ.an); EQ.routed = want; }   // off = straight to the speakers, untouched
+      eqResume();
+    }
+  }
+  eqUI();
+}
+const eqMatch = g => { for (const k in EQP) if (EQP[k][1].every((v, i) => v === g[i])) return k; return 'custom'; };
+const EQ_IN = EQF.map((hz, i) => {
+  const d = document.createElement('div'), v = document.createElement('span'), f = document.createElement('span'), r = document.createElement('input');
+  d.className = 'band'; v.className = 'bv'; f.className = 'bf'; f.textContent = hz >= 1000 ? hz / 1000 + 'k' : hz;
+  r.type = 'range'; r.min = -12; r.max = 12; r.step = 0.5; r.setAttribute('aria-label', (hz >= 1000 ? hz / 1000 + ' kHz' : hz + ' Hz') + ' gain');
+  const set = x => { const g = S.eqG.slice(); g[i] = x; S.eqG = g; S.eqP = eqMatch(g); saveSet(); eqApply(); };
+  r.oninput = () => set(+r.value); r.ondblclick = () => set(0);
+  d.append(v, r, f); $('eqbands').append(d); return r;
+});
+for (const k in EQP) { const o = document.createElement('option'); o.value = k; o.textContent = EQP[k][0]; $('eqpre').append(o); }
+{ const o = document.createElement('option'); o.value = 'custom'; o.textContent = 'Custom'; $('eqpre').append(o); }
+$('eqpre').onchange = () => { const k = $('eqpre').value; if (EQP[k]) { S.eqG = EQP[k][1].slice(); S.eqP = k; saveSet(); } eqApply(); };
+$('eqreset').onclick = () => { S.eqG = EQF.map(() => 0); S.eqPre = 0; S.eqP = 'flat'; saveSet(); eqApply(); };
+$('eqpreamp').oninput = () => { S.eqPre = +$('eqpreamp').value; saveSet(); eqApply(); };
+function eqUI() {
+  $('eqbox').classList.toggle('off', !S.eqOn);
+  EQ_IN.forEach((r, i) => { r.value = S.eqG[i]; r.classList.toggle('nz', S.eqG[i] !== 0); r.parentNode.firstChild.textContent = fmtDb(S.eqG[i]); });
+  const pa = $('eqpreamp'); pa.value = S.eqPre; pa.style.setProperty('--v', (S.eqPre + 12) / 24 * 100 + '%'); $('eqpv').textContent = fmtDb(S.eqPre) + ' dB';
+  $('eqpre').value = S.eqP in EQP ? S.eqP : 'custom';
+  eqDraw();
+}
+
+// ---- lyrics: synced .lrc next to the song, shown on the left with a glowing line that fills as it is sung ----
+const lyr = { lines: null, cur: -2, els: [], gen: 0, cache: new Map(), plain: false };
+function parseLrc(txt) {
+  const out = [], plain = []; let off = 0;
+  for (let line of txt.split(/\r?\n/)) {
+    line = line.trim(); if (!line) continue;
+    const mo = line.match(/^\[offset:\s*(-?\d+)\s*\]/i); if (mo) { off = +mo[1] / 1000; continue; }
+    if (/^\[(ar|ti|al|by|au|length|re|ve|la|#|tool|id):/i.test(line)) continue;
+    const stamps = [...line.matchAll(/\[(\d{1,3}):(\d{2})(?:[.:](\d{1,3}))?\]/g)];
+    let words = null;   // enhanced LRC: <mm:ss.xx> before each word
+    if (stamps.length === 1 && /<\d+:\d+/.test(line)) { const ws = [...line.replace(/\[[^\]]*\]/g, '').matchAll(/<(\d+):(\d{1,2}(?:[.:]\d+)?)>([^<]*)/g)].map(m => ({ t: +m[1] * 60 + parseFloat(m[2].replace(':', '.')) - off, s: m[3] })).filter(w => w.s.trim()); if (ws.length) words = ws; }
+    const text = line.replace(/\[[^\]]*\]/g, '').replace(/<\d+:\d+(?:[.:]\d+)?>/g, '').replace(/\s+/g, ' ').trim();
+    if (!stamps.length) { plain.push(text); continue; }
+    for (const m of stamps) out.push({ t: +m[1] * 60 + +m[2] + (m[3] ? parseInt(m[3]) / Math.pow(10, m[3].length) : 0) - off, s: text, w: words });
+  }
+  if (out.length) { out.sort((a, b) => a.t - b.t); return { synced: true, lines: out }; }
+  return plain.length ? { synced: false, lines: plain.map(s => ({ s })) } : null;
+}
+function setLyrTint(a) {
+  $('lyr').style.removeProperty('--glow');      // the glow follows the theme colour
+}
+function clearLyrics() {
+  $('panel').classList.remove('sy'); lyr.gen++; lyr.lines = null; lyr.cur = -2; lyr.els = [];
+  $('lyr').classList.remove('show'); $('lyrin').innerHTML = ''; $('lyrwrap').classList.remove('none'); document.querySelector('#paneseg [data-v=lyrics]').classList.remove('has');
+}
+function buildWords(d, l, nextT) {   // one span per word; a word's time is real when the file has word tags, otherwise spread over the line by length
+  const end = nextT != null ? nextT : l.t + 5, span = Math.max(0.3, Math.min(end - l.t, 8) * 0.92);
+  let parts;
+  if (l.w) parts = l.w;
+  else {
+    const toks = l.s.match(/\S+\s*/g) || [l.s], wt = toks.map(s => s.trim().length + 1), tot = wt.reduce((a, b) => a + b, 0); let acc = 0;
+    parts = toks.map((s, k) => { const o = { t: l.t + acc / tot * span, s }; acc += wt[k]; return o; });
+  }
+  const els = parts.map(p => { const e = document.createElement('span'); e.className = 'w'; e.textContent = p.s; d.appendChild(e); return e; });
+  const fe = Math.max(l.t + span, parts[parts.length - 1].t + 0.8);
+  return { els, ts: parts.map(p => p.t), fe, end: fe + 0.5 };
+}
+// the clock lyrics follow: what you actually hear = playback position minus the sound card / Bluetooth delay, plus your own timing offsets
+const lyrOff = () => (S.lo || {})[tracks[idx] && tracks[idx].p] || 0;
+const lyrTime = () => au.currentTime - ((EQ.ctx && (EQ.ctx.outputLatency || EQ.ctx.baseLatency)) || 0) + (S.lyroff || 0) / 1000 + lyrOff();
+function songLen(t) {   // wait briefly for the file's real length: online lyrics are matched against it so the right recording is used
+  return new Promise(res => {
+    const cur = () => metaFor === t && isFinite(au.duration) && au.duration > 0 ? au.duration : 0;
+    if (cur()) return res(cur());
+    const done = () => { au.removeEventListener('loadedmetadata', done); clearTimeout(to); res(cur()); }, to = setTimeout(done, 4000);
+    au.addEventListener('loadedmetadata', done);
+  });
+}
+function paintSync() {
+  const o = lyrOff(), b = $('lyrsync'); b.classList.toggle('on', !!o);
+  $('lsv').textContent = o ? (o > 0 ? 'Earlier ' : 'Later ') + Math.abs(o).toFixed(1) + 's' : 'In sync';
+}
+function nudgeLyrics(d) {
+  const t = tracks[idx]; if (!t || !lyr.synced) return;
+  S.lo = { ...(S.lo || {}) }; const v = Math.round(((S.lo[t.p] || 0) + d) * 10) / 10;
+  if (Math.abs(v) < 0.05) delete S.lo[t.p]; else S.lo[t.p] = Math.max(-10, Math.min(10, v));
+  saveSet(); paintSync(); lyr.cur = -2;
+}
+$('lsm').onclick = () => nudgeLyrics(-0.1); $('lsp').onclick = () => nudgeLyrics(0.1);
+$('lsv').onclick = () => { const t = tracks[idx]; if (t && S.lo && S.lo[t.p]) { S.lo = { ...S.lo }; delete S.lo[t.p]; saveSet(); paintSync(); lyr.cur = -2; } };
+$('lyroff').oninput = () => { S.lyroff = +$('lyroff').value; saveSet(); paintLyrOff(); };
+function paintLyrOff() { const v = S.lyroff || 0, el = $('lyroff'); el.value = v; el.style.setProperty('--v', (v + 1000) / 20 + '%'); $('lov').textContent = (v > 0 ? '+' : v < 0 ? '\u2212' : '') + Math.abs(v) + ' ms'; }
+const lyrMsg = (a, b) => { $('lna').textContent = a; $('lnb').textContent = b; };
+async function loadLyrics(t) {
+  const my = ++lyr.gen; $('panel').classList.remove('sy'); lyr.lines = null; lyr.els = []; $('lyr').classList.remove('show'); $('lyrwrap').classList.remove('none'); document.querySelector('#paneseg [data-v=lyrics]').classList.remove('has');
+  if (!t) return;
+  const src = S.lsrc || 'auto', key = src + '|' + t.p; let r = lyr.cache.get(key), neterr = false;
+  if (r === undefined) {
+    const raw = src === 'lrclib' || src === 'ovh' ? null : await api.lyrics(t.p); r = raw ? parseLrc(raw) : null; let keep = true;   // 1) a .lrc next to the song wins (unless an online source was picked)
+    if (!r && (src === 'lrclib' || src === 'ovh' || (src === 'auto' && S.olyr)) && open && my === lyr.gen) {   // 2) otherwise ask the online sources
+      const al = open.userData.album;
+      lyrMsg('Looking for lyrics\u2026', 'Checking online sources'); $('lyrwrap').classList.add('none');
+      const dur = await songLen(t); if (my !== lyr.gen) return;
+      const txt = await api.lyricsOnline({ title: t.t, artist: al.artist, album: al.title, duration: dur, src: src === 'auto' ? '' : src }).catch(() => false);
+      if (txt === false) { keep = false; neterr = true; } else r = txt ? parseLrc(txt) : null;
+    }
+    if (keep) { lyr.cache.set(key, r); if (lyr.cache.size > 300) lyr.cache.delete(lyr.cache.keys().next().value); }
+  }
+  if (my !== lyr.gen || !open) return;
+  if (!r) {
+    if (neterr) lyrMsg('Couldn\u2019t reach the lyrics sources', 'Check your connection, then play the song again');
+    else if (src === 'local') lyrMsg('No .lrc file found', 'Put a .lrc with the same name next to the song, or pick another source');
+    else if (src === 'lrclib' || src === 'ovh') lyrMsg('No lyrics on ' + lsrcName(), 'Try another source with the arrow above');
+    else if (S.olyr) lyrMsg('No lyrics found', 'Add a .lrc file with the same name next to the song');
+    else lyrMsg('No lyrics for this song', 'Add a .lrc file next to it, or turn on online lyrics in Settings');
+  }
+  $('lyrwrap').classList.toggle('none', !r); document.querySelector('#paneseg [data-v=lyrics]').classList.toggle('has', !!r);
+  if (!r) return;
+  const host = $('lyrin'); host.innerHTML = ''; host.style.transform = '';
+  const frag = document.createDocumentFragment();
+  r.lines.forEach((l, i) => {
+    const d = document.createElement('div'); d.className = 'll' + (l.s ? '' : ' gap');
+    if (r.synced && l.s) d._w = buildWords(d, l, r.lines[i + 1] ? r.lines[i + 1].t : null); else d.textContent = l.s || '\u266a';
+    if (r.synced) d.onclick = () => { if (!au.src) return; au.currentTime = Math.max(0, l.t - (lyrTime() - au.currentTime)); au.play().catch(() => {}); };
+    frag.appendChild(d); lyr.els.push(d);
+  });
+  host.appendChild(frag);
+  lyr.plain = !r.synced; $('lyr').classList.toggle('plain', lyr.plain); $('lyr').scrollTop = 0;
+  lyr.lines = r.lines; lyr.cur = -2; lyr.synced = r.synced; $('panel').classList.toggle('sy', !!r.synced); paintSync();
+  requestAnimationFrame(() => $('lyr').classList.add('show'));
+}
+const LSRC = [['auto', 'Automatic', 'Your .lrc file first, then LRCLIB and lyrics.ovh'], ['local', 'Local .lrc file', 'Only a .lrc next to the song'], ['lrclib', 'LRCLIB', 'Online, synced when available'], ['ovh', 'lyrics.ovh', 'Online, plain text']];
+const lsrcName = () => (LSRC.find(x => x[0] === (S.lsrc || 'auto')) || LSRC[0])[1];
+function paintLsrc() { $('lsrcbtn').title = 'Lyrics source: ' + lsrcName() + ' \u2013 click to change'; }
+function showLyrSrc() {
+  if (ctxHid && ctxHid.k === 'lsrc' && Date.now() - ctxHid.t < 300) return;   // that click is what just closed it
+  hideCtx(); ctx.dataset.k = 'lsrc'; ctx.innerHTML = '';
+  const hd = document.createElement('div'); hd.className = 'hd'; hd.textContent = 'Lyrics source'; ctx.appendChild(hd);
+  const cur = S.lsrc || 'auto';
+  for (const [v, n, d] of LSRC) {
+    const b = document.createElement('button'); b.setAttribute('role', 'menuitemradio'); b.setAttribute('aria-checked', String(cur === v));
+    b.innerHTML = '<span class="ck"></span><span class="lb"><b></b><small></small></span>';
+    b.querySelector('.ck').textContent = cur === v ? '\u2713' : ''; b.querySelector('b').textContent = n; b.querySelector('small').textContent = d;
+    b.onclick = () => { hideCtx(); setOpt('lsrc', v); };
+    ctx.appendChild(b);
+  }
+  ctx.classList.add('show');
+  const r = $('lsrcbtn').getBoundingClientRect(), w = ctx.offsetWidth, h = ctx.offsetHeight;
+  ctx.style.left = Math.max(8, Math.min(r.right - w, innerWidth - w - 8)) + 'px'; ctx.style.top = Math.max(8, Math.min(r.bottom + 6, innerHeight - h - 8)) + 'px';
+  ctx.querySelector('button').focus();
+}
+$('lsrcbtn').onclick = showLyrSrc;
+$('lyrclear').onclick = async () => {
+  await api.clearLyrics(); lyr.cache.clear(); const b = $('lyrclear'); b.textContent = 'Cleared'; setTimeout(() => b.textContent = 'Clear saved lyrics', 1600);
+  if (open && tracks[idx]) loadLyrics(tracks[idx]);
+};
+function tickLyrics(t) {
+  if (!lyr.synced || !lyr.els.length || !$('panel').classList.contains('show') || !(fsOn || $('panel').classList.contains('lv'))) return;
+  const L = lyr.lines; let lo = 0, hi = L.length - 1, c = -1;
+  while (lo <= hi) { const m = (lo + hi) >> 1; if (L[m].t <= t) { c = m; lo = m + 1; } else hi = m - 1; }
+  if (c !== lyr.cur) {
+    lyr.cur = c; lyr.cw = -9;
+    lyr.els.forEach((e, i) => { const d = Math.abs(i - c); e.className = 'll' + (L[i].s ? '' : ' gap') + (i === c ? ' cur' : d === 1 ? ' n1' : d === 2 ? ' n2' : ''); });
+    const e = lyr.els[Math.max(c, 0)], box = $('lyr');
+    const inn = $('lyrin'), H = box.clientHeight, ideal = H * 0.4 - (e.offsetTop + e.offsetHeight / 2);
+    inn.style.transform = `translateY(${Math.max(Math.min(0, H - inn.offsetHeight), Math.min(0, ideal))}px)`;   // keep the current line near the middle, but never scroll past the first / last line (no empty gap)
+  }
+  if (c >= 0) {
+    const wd = lyr.els[c]._w; if (!wd) return;
+    let k = -1; for (let j = wd.ts.length - 1; j >= 0; j--) if (wd.ts[j] <= t) { k = j; break; }
+    if (t > wd.end) k = -2;                                   // line is over (instrumental gap): everything sung, nothing glowing
+    if (k !== lyr.cw) { lyr.cw = k; wd.els.forEach((e, j) => { e.classList.toggle('s', k === -2 || j < k); e.classList.toggle('cw', j === k); e.style.removeProperty('--p'); }); }
+    if (k >= 0) { const a = wd.ts[k], b = k + 1 < wd.ts.length ? wd.ts[k + 1] : wd.fe, p = Math.min(1, Math.max(0, (t - a) / Math.max(0.12, b - a))); wd.els[k].style.setProperty('--p', (p * 100).toFixed(0) + '%'); }
+  }
+}
+
+// ---- full screen: just the disc and the lyrics, tinted with the album's colour ----
+let fsOn = false;
+function fsPaint() {
+  const a = pAlbum; if (!a) return;
+  const art = a._disc || discArt(a) || a.cover; $('fsc').firstChild.style.backgroundImage = art ? `url("${art}")` : '';
+  const f = $('fs').style, c = a.col;
+  if (!c) { ['--fs1', '--fs2', '--fsg'].forEach(k => f.removeProperty(k)); return; }
+  const [r, g, b] = c.map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn, l = (mx + mn) / 2;
+  let h = 0, sat = d < 0.02 ? 0.05 : d / (1 - Math.abs(2 * l - 1) || 1);
+  if (d >= 0.02) { h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; }
+  sat = d < 0.02 ? sat : Math.min(0.75, Math.max(0.3, sat));
+  f.setProperty('--fs1', `hsl(${h.toFixed(0)},${(sat * 100).toFixed(0)}%,26%)`);
+  f.setProperty('--fs2', `hsl(${h.toFixed(0)},${(sat * 80).toFixed(0)}%,8%)`);
+  f.setProperty('--fsg', `hsl(${h.toFixed(0)},${Math.max(40, sat * 100).toFixed(0)}%,68%)`);
+}
+function enterFs() {
+  if (fsOn || !open || busy || !pAlbum) return;
+  fsOn = true; fsPaint(); $('fslyr').appendChild($('lyrwrap')); $('fs').classList.add('show'); document.body.classList.add('fs-on');
+  const de = document.documentElement; if (de.requestFullscreen && !document.fullscreenElement) de.requestFullscreen().catch(() => {});
+  requestAnimationFrame(() => { lyr.cur = -2; tickLyrics(lyrTime()); });
+}
+function exitFs() {
+  if (!fsOn) return; fsOn = false;
+  $('panel').insertBefore($('lyrwrap'), $('player')); $('fs').classList.remove('show'); document.body.classList.remove('fs-on');
+  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+  requestAnimationFrame(() => { lyr.cur = -2; tickLyrics(lyrTime()); });
+}
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && fsOn) exitFs(); });
+$('fsbtn').onclick = enterFs; $('fsx').onclick = exitFs; $('fsc').onclick = () => $('play').click();
+new ResizeObserver(() => document.documentElement.style.setProperty('--barh', $('bar').offsetHeight + 'px')).observe($('bar'));
+
+// ---- start up: the library comes straight from the saved cache, then a quiet re-scan picks up changes ----
+(async function init() {
+  const d = await api.load();
+  S = { ...DEF, ...(d.settings || {}) }; PHOTO = d.photos || {};
+  if (S.open === 'stack') S.open = 'classic';
+  S.eqG = Array.isArray(S.eqG) && S.eqG.length === EQF.length ? S.eqG.map(Number) : EQF.map(() => 0);
+  syncUI(); paintLsrc(); eqUI(); applyBg(); applyVol(); applyAccent(); applyBackMaps(); applyViz(true); syncModes(); paintSleep(); paintLyrOff(); $('panel').classList.toggle('lv', S.pane === 'lyrics'); document.body.classList.toggle('noidx', !S.idx);
+  ROWH = 1.7; targetY = -(S.row || 0) * ROWH;
+  setLib(d, true);
+  if (ROOTS.length && S.rescan) api.scan(false);
+})();
+requestAnimationFrame(loop);
+
+</script>
