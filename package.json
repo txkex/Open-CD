@@ -1,7 +1,7 @@
 {
   "name": "open-cd",
   "productName": "Open CD",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A 3D shelf of CD cases for your local music library",
   "author": "txkex",
   "license": "MIT",
