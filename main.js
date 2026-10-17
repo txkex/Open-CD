@@ -158,7 +158,7 @@ async function runScan(full) {
 function createWindow() {
   const b = ST.data.win || {};
   win = new BrowserWindow({
-    width: b.w || 1280, height: b.h || 800, x: b.x, y: b.y, backgroundColor: '#14110f', autoHideMenuBar: true,
+    width: b.w || 1280, height: b.h || 800, x: b.x, y: b.y, backgroundColor: '#14110f', autoHideMenuBar: true, icon: path.join(__dirname, 'build', 'icon.png'),
     webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, nodeIntegration: false, autoplayPolicy: 'no-user-gesture-required' }
   });
   if (b.max) win.maximize();

@@ -27,7 +27,7 @@
     "appId": "local.opencd",
     "copyright": "Copyright (c) 2026 txkex",
     "directories": { "output": "dist" },
-    "files": ["index.html", "main.js", "preload.js", "scanner.js", "vendor/**/*"],
+    "files": ["index.html", "main.js", "preload.js", "scanner.js", "build/icon.png", "vendor/**/*"],
     "win": { "target": "portable" },
     "portable": { "artifactName": "OpenCD-${version}-portable.${ext}" },
     "nsis": { "artifactName": "OpenCD-${version}-setup.${ext}" },
